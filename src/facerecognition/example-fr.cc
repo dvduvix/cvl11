@@ -274,13 +274,12 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 			client->getRollPitchYaw(msg, roll, pitch, yaw);
 			world->constructRotationMatrix(roll, pitch, yaw);
 
-//			printf("%d %d \n", face->faceProp.p1.x, face->faceProp.p1.y);
-//			printf("%d %d \n", face->faceProp.p2.x, face->faceProp.p2.y);
-//			printf("%d %d \n", face->faceProp.p3.x, face->faceProp.p3.y);
 			world->normalFromPoints(world->get3DPoint(face->faceProp.p1, imgDepth, focus),
 									world->get3DPoint(face->faceProp.p2, imgDepth, focus),
 									world->get3DPoint(face->faceProp.p3, imgDepth, focus));
 
+
+			printf("%f \n", world->get3DPoint(face->faceProp.p3, imgDepth, focus).z);
 
 			IplImage iImgL = imgL;
 
