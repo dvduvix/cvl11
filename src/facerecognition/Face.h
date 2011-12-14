@@ -14,7 +14,6 @@
 #include <opencv2/imgproc/imgproc_c.h>
 
 #include "FaceProp.h"
-#include "klt.h"
 
 using namespace std;
 using namespace cv;

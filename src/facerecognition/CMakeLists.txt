@@ -15,14 +15,7 @@ PIXHAWK_EXECUTABLE(example-fr example-fr.cc
 				   FaceProp FaceProp.cpp
 				   StereoProc StereoProc.cc
 				   World World.cpp
-				   klt klt.cpp
-				   klt_util klt_util.cpp
-				   error error.cpp
-				   pyramid pyramid.cpp
-				   convolve convolve.cpp
-				   pnmio pnmio.cpp
-				   selectGoodFeatures selectGoodFeatures.cpp
-				   trackFeatures trackFeatures.cpp)
+				   Control Control.cpp)
 
 PIXHAWK_LINK_LIBRARIES(example-fr
   ${Boost_PROGRAM_OPTIONS_LIBRARY}

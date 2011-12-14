@@ -18,7 +18,7 @@ public:
 	World();
 	virtual ~World();
 
-	Point3d get3DPoint(Point2i p, Mat &depthImage);
+	Point3d get3DPoint(Point2i p, Mat &depthImage, float focus);
 	CvMat *constructRotationMatrix(float roll, float pitch, float yaw);
 	Vec3f normalFromPoints(Point3f s1, Point3f s2, Point3f s3);
 };

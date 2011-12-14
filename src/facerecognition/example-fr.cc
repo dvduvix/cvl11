@@ -1,32 +1,8 @@
-/*=====================================================================
-
-MAVCONN Micro Air Vehicle Flying Robotics Toolkit
-Please see our website at <http://MAVCONN.ethz.ch>
-
-(c) 2009, 2010 MAVCONN PROJECT
-
-This file is part of the MAVCONN project
-
-    MAVCONN is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    MAVCONN is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MAVCONN. If not, see <http://www.gnu.org/licenses/>.
-
-======================================================================*/
-
 /**
  * @file
- *   @brief LCM example
+ *   @brief Face Tracking
  *
- *   @author Lorenz Meier <mavteam@student.ethz.ch>
+ *   @author Vasilevski Dushan
  *
  */
 
@@ -59,7 +35,8 @@ int compid = 112;
 bool verbose = false;
 bool debug = 0;
 
-static GString* configFile = g_string_new("conf/abc.cfg");
+static GString* configFile = g_string_new("config.cfg");
+string stereoCfg;
 
 int imageCounter = 0;
 std::string fileBaseName("frame");
@@ -262,7 +239,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
 	cv::Mat imgL, imgR, imgDepth, imgRectified;
 
-	bool s = stereo.init("/home/vdushan/stereo/calib_stereo_bravo_bluefox.scf");
+	bool s = stereo.init(stereoCfg);
 
 	if (!s) {
 		printf("ERROR: Stereo not init-ed\n");
@@ -273,6 +250,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 	cv::Mat imgDepthColor;
 
 	stereo.getImageInfo(intrinsicMat);
+	float focus = intrinsicMat.at<float>(0, 0);
 
 	if (client->readStereoImage(msg, imgL, imgR)) {
 
@@ -291,6 +269,18 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 			colorDepthImage(imgDepth, imgDepthColor);
 			cv::namedWindow("Depth map");
 			cv::imshow("Depth map", imgDepthColor);
+
+			float roll, pitch, yaw;
+			client->getRollPitchYaw(msg, roll, pitch, yaw);
+			world->constructRotationMatrix(roll, pitch, yaw);
+
+//			printf("%d %d \n", face->faceProp.p1.x, face->faceProp.p1.y);
+//			printf("%d %d \n", face->faceProp.p2.x, face->faceProp.p2.y);
+//			printf("%d %d \n", face->faceProp.p3.x, face->faceProp.p3.y);
+			world->normalFromPoints(world->get3DPoint(face->faceProp.p1, imgDepth, focus),
+									world->get3DPoint(face->faceProp.p2, imgDepth, focus),
+									world->get3DPoint(face->faceProp.p3, imgDepth, focus));
+
 
 			IplImage iImgL = imgL;
 
@@ -330,17 +320,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 			}
 		}
 
-		/*float roll, pitch, yaw;
-		client->getRollPitchYaw(msg, roll, pitch, yaw);
-		world->constructRotationMatrix(roll, pitch, yaw);
 
-		printf("%d %d \n", face->faceProp.p1.x, face->faceProp.p1.y);
-		printf("%d %d \n", face->faceProp.p2.x, face->faceProp.p2.y);
-		printf("%d %d \n", face->faceProp.p3.x, face->faceProp.p3.y);
-		world->normalFromPoints(world->get3DPoint(face->faceProp.p1, imgDepth),
-								world->get3DPoint(face->faceProp.p2, imgDepth),
-								world->get3DPoint(face->faceProp.p3, imgDepth));
-*/
 		/*struct timeval tv;
 		gettimeofday(&tv, NULL);
 		uint64_t currTime = ((uint64_t)tv.tv_sec) * 1000000 + tv.tv_usec;
@@ -477,6 +457,17 @@ int main(int argc, char* argv[])
 {
 
 	//////////////////////////////////////////////////////////////////
+
+	ifstream myfile(configFile->str);
+
+	if (myfile.is_open()) {
+		getline(myfile, stereoCfg);
+		myfile.close();
+	} else {
+		printf("Unable to open conf file.");
+		exit(0);
+	}
+
 	face = new Face();
 
 	face->faceCascadeName = "haarcascade_frontalface_alt.xml";

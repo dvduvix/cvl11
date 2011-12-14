@@ -11,16 +11,15 @@ World::World() { }
 
 World::~World() { }
 
-Point3d World::get3DPoint(Point2i p, Mat &depthImage)
+Point3d World::get3DPoint(Point2i p, Mat &depthImage, float focus)
 {
-	printf("1 ... %d, %d\n", p.x, p.y);
 	Point3d point;
 
-	point.x = p.x;
-	point.y = p.y;
-	point.z = depthImage.at<float>(p.x, p.y);
+	point.z = depthImage.at<float>(p.y, p.x);
 
-	printf("2 ... %f \n", point.z);
+	point.x = (p.x - depthImage.cols / 2.) * point.z / focus;
+	point.y = (p.y - depthImage.rows / 2.) * point.z / focus;
+
 	return point;
 }
 
