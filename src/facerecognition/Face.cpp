@@ -94,6 +94,7 @@ bool Face::detectFace(cv::Mat &frame)
 	faceProp.p1 = p1;
 	faceProp.p2 = p2;
 	faceProp.p3 = p3;
+	faceProp.c = c;
 
     namedWindow("Face");
     imshow("Face", frame(face));
