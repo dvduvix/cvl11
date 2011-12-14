@@ -20,6 +20,7 @@ public:
 	virtual ~Control();
 
 	int flyToPos(Point3d pos, lcm_t *lcm, int compid);
+
 };
 
 #endif /* CONTROL_H_ */

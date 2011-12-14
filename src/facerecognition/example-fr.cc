@@ -274,9 +274,10 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 			client->getRollPitchYaw(msg, roll, pitch, yaw);
 			world->constructRotationMatrix(roll, pitch, yaw);
 
-			world->normalFromPoints(world->get3DPoint(face->faceProp.p1, imgDepth, focus),
-									world->get3DPoint(face->faceProp.p2, imgDepth, focus),
-									world->get3DPoint(face->faceProp.p3, imgDepth, focus));
+			Vec3f normal =
+					world->normalFromPoints(world->get3DPoint(face->faceProp.p1, imgDepth, focus),
+											world->get3DPoint(face->faceProp.p2, imgDepth, focus),
+											world->get3DPoint(face->faceProp.p3, imgDepth, focus));
 
 
 			printf("%f \n", world->get3DPoint(face->faceProp.p3, imgDepth, focus).z);
@@ -289,6 +290,12 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 					cvScalar(255, 0, 0, 1));
 			cvLine(&iImgL, face->faceProp.p2, face->faceProp.p3,
 					cvScalar(255, 0, 0, 1), 2);
+
+			Point2i p;
+			p.x = face->faceProp.c.x - 50 * normal[0];
+			p.y = face->faceProp.c.y - 50 * normal[1];
+
+			cvLine(&iImgL, face->faceProp.c, p, cvScalar(200, 0, 0, 1), 3);
 
 		} else {
 			switch (face->direction) {

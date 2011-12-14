@@ -53,15 +53,17 @@ bool Face::detectFace(cv::Mat &frame)
 
 	rectangle(frame, pp1, pp2, cvScalar(255, 0, 0, 1));
 
-	Point p1, p2, p3;
+	Point p1, p2, p3, c;
 
 	p1.x = 0.33 * face.width + face.x;
 	p2.x = 0.66 * face.width + face.x;
 	p3.x = 0.5 * face.width + face.x;
+	c.x = 0.5 * face.width + face.x;
 
 	p1.y = 0.33 * face.height + face.y;
 	p2.y = p1.y;
 	p3.y = 0.67 * face.height + face.y;
+	c.y = 0.5 * face.height + face.y;
 
 	int dX = faceProp.p1.x + faceProp.p2.x + faceProp.p3.x - p1.x - p2.x - p3.x;
 	int dY = faceProp.p1.y + faceProp.p2.y + faceProp.p3.y - p1.y - p2.y - p3.y;

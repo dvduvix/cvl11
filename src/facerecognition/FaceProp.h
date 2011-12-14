@@ -19,6 +19,7 @@ public:
 	virtual ~FaceProp();
 
 	Point2i p1, p2, p3;
+	Point2i c;
 };
 
 #endif /* FACEPROP_H_ */
