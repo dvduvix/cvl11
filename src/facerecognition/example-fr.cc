@@ -400,6 +400,7 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 
 	switch(msg->msgid)
 	{
+
 	uint32_t receiveTime;
 	uint32_t sendTime;
 /*	case MAVLINK_MSG_ID_COMMAND_SHORT:
