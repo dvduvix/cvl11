@@ -402,7 +402,7 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 	{
 	uint32_t receiveTime;
 	uint32_t sendTime;
-	case MAVLINK_MSG_ID_COMMAND_SHORT:
+/*	case MAVLINK_MSG_ID_COMMAND_SHORT:
 	{
 		mavlink_command_short_t cmd;
 		mavlink_msg_command_short_decode(msg, &cmd);
@@ -412,7 +412,7 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 		printf("Target Component ID: %d\n", cmd.target_component);
 		printf("\n");*/
 
-		if (cmd.confirmation)
+		/*if (cmd.confirmation)
 		{
 			//printf("Confirmation requested, sending confirmation:\n");
 			mavlink_command_ack_t ack;
@@ -422,7 +422,7 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 			sendMAVLinkMessage(lcm, &response);
 		}
 	}
-	break;
+	break;*/
 	case MAVLINK_MSG_ID_ATTITUDE:
 		gettimeofday(&tv, NULL);
 		receiveTime = tv.tv_usec;

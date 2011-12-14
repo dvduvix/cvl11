@@ -26,7 +26,7 @@ bool Face::detectFace(cv::Mat &frame)
 
 	Mat imgROI = dFrame(ROI);
 
-	faceCascade.detectMultiScale(imgROI, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(30, 30));
+	faceCascade.detectMultiScale(imgROI, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(27, 27));
 
 	if (faces.size() == 0)
 		return false;

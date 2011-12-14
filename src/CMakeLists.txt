@@ -86,6 +86,6 @@ INCLUDE_DIRECTORIES(
 )
 
 # CVL11 code
-ADD_SUBDIRECTORY(examples)
+# ADD_SUBDIRECTORY(examples)
 ADD_SUBDIRECTORY(facerecognition)
 
