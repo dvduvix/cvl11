@@ -30,10 +30,15 @@ This file is part of the MAVCONN project
  *
  */
 
+#define NONO_DISPLAY 1
+
 #include <cstdio>
 #include <unistd.h>
 #include <glib.h>
 #include "mavconn.h"
+#include "Face.h"
+#include "World.h"
+#include "StereoProc.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
@@ -66,11 +71,169 @@ using namespace std;
 using namespace cv;
 
 // Global variables
-string face_cascade_name = "haarcascade_frontalface_alt.xml";
-string eyes_cascade_name = "haarcascade_eye_tree_eyeglasses.xml";
+Face *face;
+World *world;
+StereoProc stereo;
 
-CascadeClassifier face_cascade;
-CascadeClassifier eyes_cascade;
+bool foundFace = false;
+bool isInit = true;
+
+float colormap_jet[128][3] =
+{
+		{0.0f,0.0f,0.53125f},
+		{0.0f,0.0f,0.5625f},
+		{0.0f,0.0f,0.59375f},
+		{0.0f,0.0f,0.625f},
+		{0.0f,0.0f,0.65625f},
+		{0.0f,0.0f,0.6875f},
+		{0.0f,0.0f,0.71875f},
+		{0.0f,0.0f,0.75f},
+		{0.0f,0.0f,0.78125f},
+		{0.0f,0.0f,0.8125f},
+		{0.0f,0.0f,0.84375f},
+		{0.0f,0.0f,0.875f},
+		{0.0f,0.0f,0.90625f},
+		{0.0f,0.0f,0.9375f},
+		{0.0f,0.0f,0.96875f},
+		{0.0f,0.0f,1.0f},
+		{0.0f,0.03125f,1.0f},
+		{0.0f,0.0625f,1.0f},
+		{0.0f,0.09375f,1.0f},
+		{0.0f,0.125f,1.0f},
+		{0.0f,0.15625f,1.0f},
+		{0.0f,0.1875f,1.0f},
+		{0.0f,0.21875f,1.0f},
+		{0.0f,0.25f,1.0f},
+		{0.0f,0.28125f,1.0f},
+		{0.0f,0.3125f,1.0f},
+		{0.0f,0.34375f,1.0f},
+		{0.0f,0.375f,1.0f},
+		{0.0f,0.40625f,1.0f},
+		{0.0f,0.4375f,1.0f},
+		{0.0f,0.46875f,1.0f},
+		{0.0f,0.5f,1.0f},
+		{0.0f,0.53125f,1.0f},
+		{0.0f,0.5625f,1.0f},
+		{0.0f,0.59375f,1.0f},
+		{0.0f,0.625f,1.0f},
+		{0.0f,0.65625f,1.0f},
+		{0.0f,0.6875f,1.0f},
+		{0.0f,0.71875f,1.0f},
+		{0.0f,0.75f,1.0f},
+		{0.0f,0.78125f,1.0f},
+		{0.0f,0.8125f,1.0f},
+		{0.0f,0.84375f,1.0f},
+		{0.0f,0.875f,1.0f},
+		{0.0f,0.90625f,1.0f},
+		{0.0f,0.9375f,1.0f},
+		{0.0f,0.96875f,1.0f},
+		{0.0f,1.0f,1.0f},
+		{0.03125f,1.0f,0.96875f},
+		{0.0625f,1.0f,0.9375f},
+		{0.09375f,1.0f,0.90625f},
+		{0.125f,1.0f,0.875f},
+		{0.15625f,1.0f,0.84375f},
+		{0.1875f,1.0f,0.8125f},
+		{0.21875f,1.0f,0.78125f},
+		{0.25f,1.0f,0.75f},
+		{0.28125f,1.0f,0.71875f},
+		{0.3125f,1.0f,0.6875f},
+		{0.34375f,1.0f,0.65625f},
+		{0.375f,1.0f,0.625f},
+		{0.40625f,1.0f,0.59375f},
+		{0.4375f,1.0f,0.5625f},
+		{0.46875f,1.0f,0.53125f},
+		{0.5f,1.0f,0.5f},
+		{0.53125f,1.0f,0.46875f},
+		{0.5625f,1.0f,0.4375f},
+		{0.59375f,1.0f,0.40625f},
+		{0.625f,1.0f,0.375f},
+		{0.65625f,1.0f,0.34375f},
+		{0.6875f,1.0f,0.3125f},
+		{0.71875f,1.0f,0.28125f},
+		{0.75f,1.0f,0.25f},
+		{0.78125f,1.0f,0.21875f},
+		{0.8125f,1.0f,0.1875f},
+		{0.84375f,1.0f,0.15625f},
+		{0.875f,1.0f,0.125f},
+		{0.90625f,1.0f,0.09375f},
+		{0.9375f,1.0f,0.0625f},
+		{0.96875f,1.0f,0.03125f},
+		{1.0f,1.0f,0.0f},
+		{1.0f,0.96875f,0.0f},
+		{1.0f,0.9375f,0.0f},
+		{1.0f,0.90625f,0.0f},
+		{1.0f,0.875f,0.0f},
+		{1.0f,0.84375f,0.0f},
+		{1.0f,0.8125f,0.0f},
+		{1.0f,0.78125f,0.0f},
+		{1.0f,0.75f,0.0f},
+		{1.0f,0.71875f,0.0f},
+		{1.0f,0.6875f,0.0f},
+		{1.0f,0.65625f,0.0f},
+		{1.0f,0.625f,0.0f},
+		{1.0f,0.59375f,0.0f},
+		{1.0f,0.5625f,0.0f},
+		{1.0f,0.53125f,0.0f},
+		{1.0f,0.5f,0.0f},
+		{1.0f,0.46875f,0.0f},
+		{1.0f,0.4375f,0.0f},
+		{1.0f,0.40625f,0.0f},
+		{1.0f,0.375f,0.0f},
+		{1.0f,0.34375f,0.0f},
+		{1.0f,0.3125f,0.0f},
+		{1.0f,0.28125f,0.0f},
+		{1.0f,0.25f,0.0f},
+		{1.0f,0.21875f,0.0f},
+		{1.0f,0.1875f,0.0f},
+		{1.0f,0.15625f,0.0f},
+		{1.0f,0.125f,0.0f},
+		{1.0f,0.09375f,0.0f},
+		{1.0f,0.0625f,0.0f},
+		{1.0f,0.03125f,0.0f},
+		{1.0f,0.0f,0.0f},
+		{0.96875f,0.0f,0.0f},
+		{0.9375f,0.0f,0.0f},
+		{0.90625f,0.0f,0.0f},
+		{0.875f,0.0f,0.0f},
+		{0.84375f,0.0f,0.0f},
+		{0.8125f,0.0f,0.0f},
+		{0.78125f,0.0f,0.0f},
+		{0.75f,0.0f,0.0f},
+		{0.71875f,0.0f,0.0f},
+		{0.6875f,0.0f,0.0f},
+		{0.65625f,0.0f,0.0f},
+		{0.625f,0.0f,0.0f},
+		{0.59375f,0.0f,0.0f},
+		{0.5625f,0.0f,0.0f},
+		{0.53125f,0.0f,0.0f},
+		{0.5f,0.0f,0.0f}
+};
+
+void colorDepthImage(cv::Mat& imgDepth, cv::Mat& imgColoredDepth)
+{
+	imgColoredDepth = cv::Mat::zeros(imgDepth.size(), CV_8UC3);
+
+	for (int i = 0; i < imgColoredDepth.rows; ++i)
+	{
+		const float* depth = imgDepth.ptr<float>(i);
+		unsigned char* pixel = imgColoredDepth.ptr<unsigned char>(i);
+		for (int j = 0; j < imgColoredDepth.cols; ++j)
+		{
+			if (depth[j] != 0)
+			{
+				int idx = fmin(depth[j], 10.0f) / 10.0f * 127.0f;
+				idx = 127 - idx;
+
+				pixel[0] = colormap_jet[idx][2] * 255.0f;
+				pixel[1] = colormap_jet[idx][1] * 255.0f;
+				pixel[2] = colormap_jet[idx][0] * 255.0f;
+			}
+
+			pixel += 3;
+		}
+	}
+}
 
 void
 signalHandler(int signal)
@@ -82,39 +245,6 @@ signalHandler(int signal)
 		exit(EXIT_SUCCESS);
 	}
 }
-
-
-/**
- * @brief Detect face charachtersitcs
- *
- */
-
-void detectAndDisplay(Mat frame)
-{
-  std::vector<Rect> faces;
-
-  equalizeHist(frame, frame);
-
-  face_cascade.detectMultiScale( frame, faces, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, Size(30, 30) );
-
-  for(u_int i = 0; i < faces.size(); ++i) {
-	  Point center( faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5 );
-	  ellipse( frame, center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 255, 0, 255 ), 4, 8, 0 );
-
-	/*  Mat faceROI = frame( faces[i] );
-	  std::vector<Rect> eyes;
-
-    eyes_cascade.detectMultiScale( faceROI, eyes, 1.1, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(30, 30) );
-
-    for(u_int j = 0; j < eyes.size(); ++j) {
-    	Point center( faces[i].x + eyes[j].x + eyes[j].width*0.5, faces[i].y + eyes[j].y + eyes[j].height*0.5 );
-       	int radius = cvRound( (eyes[j].width + eyes[i].height)*0.25 );
-       	circle( frame, center, radius, Scalar( 255, 0, 0 ), 4, 8, 0 );
-     }*/
-  }
-
- }
-
 
 /**
  * @brief Handle incoming MAVLink packets containing images
@@ -130,51 +260,116 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
 	cv::Mat imgToSave;
 
-	printf("GOT IMG MSG\n");
+	cv::Mat imgL, imgR, imgDepth, imgRectified;
 
-	// read mono image data
-	cv::Mat img;
-	if (client->readMonoImage(msg, img))
-	{
+	bool s = stereo.init("/home/vdushan/stereo/calib_stereo_bravo_bluefox.scf");
 
+	if (!s) {
+		printf("ERROR: Stereo not init-ed\n");
+		exit(EXIT_FAILURE);
+	}
 
-		//////////////////////////////////////
+	cv::Mat intrinsicMat;
+	cv::Mat imgDepthColor;
 
-		// APPLY ONE OF THE OPENCV FUNCTIONS HERE, AND OUTPUT IMAGE HERE
+	stereo.getImageInfo(intrinsicMat);
 
-		//////////////////////////////////////
+	if (client->readStereoImage(msg, imgL, imgR)) {
 
+		if (isInit) {
+			face->init(imgL);
+			isInit = false;
+		}
 
-		detectAndDisplay(img);
+		foundFace =	face->detectFace(imgL);
 
+		if (foundFace) {
+			stereo.process(imgL, imgR, imgRectified, imgDepth);
+			cv::Mat *imgDepthCopy = new cv::Mat();
+			imgDepth.copyTo(*imgDepthCopy);
 
-		struct timeval tv;
+			colorDepthImage(imgDepth, imgDepthColor);
+			cv::namedWindow("Depth map");
+			cv::imshow("Depth map", imgDepthColor);
+
+			IplImage iImgL = imgL;
+
+			cvLine(&iImgL, face->faceProp.p1, face->faceProp.p2,
+					cvScalar(255, 0, 0, 1), 2);
+			cvLine(&iImgL, face->faceProp.p1, face->faceProp.p3,
+					cvScalar(255, 0, 0, 1));
+			cvLine(&iImgL, face->faceProp.p2, face->faceProp.p3,
+					cvScalar(255, 0, 0, 1), 2);
+
+		} else {
+			switch (face->direction) {
+				case Face::D :
+					printf("V V Down ... \n");
+				break;
+				case Face::U :
+					printf("^ ^ Up ... \n");
+				break;
+				case Face::L :
+					printf("< < Left ... \n");
+				break;
+				case Face::R :
+					printf("> > Right ... \n");
+				break;
+				case Face::UL :
+					printf("^ < Up Left ... \n");
+				break;
+				case Face::UR :
+					printf("^ > Up Right ... \n");
+				break;
+				case Face::DL :
+					printf("V < Down Left... \n");
+				break;
+				case Face::DR :
+					printf("V > Down Right... \n");
+				break;
+			}
+		}
+
+		/*float roll, pitch, yaw;
+		client->getRollPitchYaw(msg, roll, pitch, yaw);
+		world->constructRotationMatrix(roll, pitch, yaw);
+
+		printf("%d %d \n", face->faceProp.p1.x, face->faceProp.p1.y);
+		printf("%d %d \n", face->faceProp.p2.x, face->faceProp.p2.y);
+		printf("%d %d \n", face->faceProp.p3.x, face->faceProp.p3.y);
+		world->normalFromPoints(world->get3DPoint(face->faceProp.p1, imgDepth),
+								world->get3DPoint(face->faceProp.p2, imgDepth),
+								world->get3DPoint(face->faceProp.p3, imgDepth));
+*/
+		/*struct timeval tv;
 		gettimeofday(&tv, NULL);
 		uint64_t currTime = ((uint64_t)tv.tv_sec) * 1000000 + tv.tv_usec;
 		uint64_t timestamp = client->getTimestamp(msg);
 
 		uint64_t diff = currTime - timestamp;
 
+		cout << diff;
+
 		if (verbose)
 		{
 			fprintf(stderr, "# INFO: Time from capture to display: %llu ms for camera %llu\n", diff / 1000, client->getCameraID(msg));
-		}
+		}*/
 
 		// Display if switched on
 #ifndef NO_DISPLAY
 		if ((client->getCameraConfig() & PxSHM::CAMERA_FORWARD_LEFT) == PxSHM::CAMERA_FORWARD_LEFT)
 		{
 			cv::namedWindow("Left Image (Forward Camera)");
-			cv::imshow("Left Image (Forward Camera)", img);
+			cv::imshow("Left Image (Forward Camera)", imgL);
 		}
 		else
 		{
 			cv::namedWindow("Left Image (Downward Camera)");
-			cv::imshow("Left Image (Downward Camera)", img);
+			cv::imshow("Left Image (Downward Camera)", imgL);
 		}
 #endif
 
-		img.copyTo(imgToSave);
+		imgL.copyTo(imgToSave);
 	}
 
 #ifndef NO_DISPLAY
@@ -201,7 +396,7 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 	const mavlink_message_t* msg = getMAVLinkMsgPtr(container);
 	mavlink_message_t response;
 	lcm_t* lcm = static_cast<lcm_t*>(user);
-	printf("Received message #%d on channel \"%s\" (sys:%d|comp:%d):\n", msg->msgid, channel, msg->sysid, msg->compid);
+	//printf("Received message #%d on channel \"%s\" (sys:%d|comp:%d):\n", msg->msgid, channel, msg->sysid, msg->compid);
 
 	switch(msg->msgid)
 	{
@@ -211,15 +406,15 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 	{
 		mavlink_command_short_t cmd;
 		mavlink_msg_command_short_decode(msg, &cmd);
-		printf("Message ID: %d\n", msg->msgid);
+		/*printf("Message ID: %d\n", msg->msgid);
 		printf("Command ID: %d\n", cmd.command);
 		printf("Target System ID: %d\n", cmd.target_system);
 		printf("Target Component ID: %d\n", cmd.target_component);
-		printf("\n");
+		printf("\n");*/
 
 		if (cmd.confirmation)
 		{
-			printf("Confirmation requested, sending confirmation:\n");
+			//printf("Confirmation requested, sending confirmation:\n");
 			mavlink_command_ack_t ack;
 			ack.command = cmd.command;
 			ack.result = 3;
@@ -232,24 +427,24 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 		gettimeofday(&tv, NULL);
 		receiveTime = tv.tv_usec;
 		sendTime = mavlink_msg_attitude_get_time_boot_ms(msg);
-		printf("Received attitude message, transport took %f ms\n", (receiveTime - sendTime)/1000.0f);
+		//printf("Received attitude message, transport took %f ms\n", (receiveTime - sendTime)/1000.0f);
 		break;
 	case MAVLINK_MSG_ID_GPS_RAW_INT:
 	{
 		mavlink_gps_raw_int_t gps;
 		mavlink_msg_gps_raw_int_decode(msg, &gps);
-		printf("GPS: lat: %f, lon: %f, alt: %f\n", gps.lat/(double)1E7, gps.lon/(double)1E7, gps.alt/(double)1E6);
+		//printf("GPS: lat: %f, lon: %f, alt: %f\n", gps.lat/(double)1E7, gps.lon/(double)1E7, gps.alt/(double)1E6);
 		break;
 	}
 	case MAVLINK_MSG_ID_RAW_PRESSURE:
 	{
 		mavlink_raw_pressure_t p;
 		mavlink_msg_raw_pressure_decode(msg, &p);
-		printf("PRES: %f\n", p.press_abs/(double)1000);
+		//printf("PRES: %f\n", p.press_abs/(double)1000);
 	}
 	break;
 	default:
-		printf("ERROR: could not decode message with ID: %d\n", msg->msgid);
+		//printf("ERROR: could not decode message with ID: %d\n", msg->msgid);
 		break;
 	}
 }
@@ -281,17 +476,11 @@ int main(int argc, char* argv[])
 {
 
 	//////////////////////////////////////////////////////////////////
+	face = new Face();
 
-	if(!face_cascade.load(face_cascade_name)) {
-		printf("--(!)Error loading %s\n", face_cascade_name.c_str());
-		return -1;
-	};
+	face->faceCascadeName = "haarcascade_frontalface_alt.xml";
 
-	if(!eyes_cascade.load(eyes_cascade_name)) {
-		printf("--(!)Error loading %s\n", eyes_cascade_name.c_str());
-		return -1;
-	};
-
+	stereo.init("");
 	//////////////////////////////////////////////////////////////////
 
 	GError *error = NULL;
@@ -333,10 +522,11 @@ int main(int argc, char* argv[])
 	}
 
 	PxSHMImageClient client;
-	client.init(true, PxSHM::CAMERA_DOWNWARD_LEFT);
+	client.init(true, PxSHM::CAMERA_FORWARD_LEFT, PxSHM::CAMERA_FORWARD_RIGHT);
+	//client.init(true, PxSHM::CAMERA_FORWARD_LEFT);
 
 	// Ready to roll
-	fprintf(stderr, "# INFO: Image client ready, waiting for images..\n");
+	fprintf(stderr, "# INFO: Image client ready, waiting for images...\n");
 
 	// Subscribe to MAVLink messages on the image channel
 	mavconn_mavlink_msg_container_t_subscription_t* imgSub = mavconn_mavlink_msg_container_t_subscribe(lcm, MAVLINK_IMAGES, &imageHandler, &client);
