@@ -18,15 +18,13 @@
 using namespace std;
 using namespace cv;
 
-
-
 class Face
 {
 public:
 	Face();
 	virtual ~Face();
 
-	int init(cv::Mat frame);
+	int init(cv::Mat &frame);
 
 	bool detectFace(cv::Mat &frame);
 
@@ -45,6 +43,7 @@ private:
 
 	Rect ROI;
 	int factor;
+	Vec3f plane;
 };
 
 #endif /* FACE_H_ */

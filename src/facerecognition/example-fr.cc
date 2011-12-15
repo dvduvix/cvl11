@@ -14,6 +14,7 @@
 #include "mavconn.h"
 #include "Face.h"
 #include "World.h"
+#include "Control.h"
 #include "StereoProc.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -50,10 +51,13 @@ using namespace cv;
 // Global variables
 Face *face;
 World *world;
+Control *control;
 StereoProc stereo;
 
 bool foundFace = false;
 bool isInit = true;
+
+lcm_t *lcm;
 
 float colormap_jet[128][3] =
 {
@@ -274,14 +278,6 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 			client->getRollPitchYaw(msg, roll, pitch, yaw);
 			world->constructRotationMatrix(roll, pitch, yaw);
 
-			Vec3f normal =
-					world->normalFromPoints(world->get3DPoint(face->faceProp.p1, imgDepth, focus),
-											world->get3DPoint(face->faceProp.p2, imgDepth, focus),
-											world->get3DPoint(face->faceProp.p3, imgDepth, focus));
-
-
-			printf("%f \n", world->get3DPoint(face->faceProp.p3, imgDepth, focus).z);
-
 			IplImage iImgL = imgL;
 
 			cvLine(&iImgL, face->faceProp.p1, face->faceProp.p2,
@@ -291,11 +287,29 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 			cvLine(&iImgL, face->faceProp.p2, face->faceProp.p3,
 					cvScalar(255, 0, 0, 1), 2);
 
-			Point2i p;
+			/*Vec3f normal =
+					world->normalFromArea(face->faceProp, imgDepth, focus);
+*/
+			Vec3f normalw =
+					world->normalFrom3DPoints(
+							world->get3DPoint(face->faceProp.p1, imgDepth, focus),
+							world->get3DPoint(face->faceProp.p2, imgDepth, focus),
+							world->get3DPoint(face->faceProp.p3, imgDepth, focus));
+
+
+			control->flyToPos(world->get3DPoint(face->faceProp.p3, imgDepth, focus),
+					lcm, compid);
+			/*Point2i p;
 			p.x = face->faceProp.c.x - 50 * normal[0];
 			p.y = face->faceProp.c.y - 50 * normal[1];
 
-			cvLine(&iImgL, face->faceProp.c, p, cvScalar(200, 0, 0, 1), 3);
+			cvLine(&iImgL, face->faceProp.c, p, cvScalar(0, 0, 0, 1), 3);*/
+
+			Point2i pw;
+			pw.x = face->faceProp.c.x - 50 * normalw[0];
+			pw.y = face->faceProp.c.y - 50 * normalw[1];
+
+			cvLine(&iImgL, face->faceProp.c, pw, cvScalar(255, 0, 0, 1), 3);
 
 		} else {
 			switch (face->direction) {
@@ -380,36 +394,16 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 		const mavconn_mavlink_msg_container_t* container, void * user)
 {
 	const mavlink_message_t* msg = getMAVLinkMsgPtr(container);
-	mavlink_message_t response;
-	lcm_t* lcm = static_cast<lcm_t*>(user);
-	//printf("Received message #%d on channel \"%s\" (sys:%d|comp:%d):\n", msg->msgid, channel, msg->sysid, msg->compid);
+//	mavlink_message_t response;
+    lcm = static_cast<lcm_t*>(user);
+//  printf("Received message #%d on channel \"%s\" (sys:%d|comp:%d):\n", msg->msgid, channel, msg->sysid, msg->compid);
 
 	switch(msg->msgid)
 	{
 
 	uint32_t receiveTime;
 	uint32_t sendTime;
-/*	case MAVLINK_MSG_ID_COMMAND_SHORT:
-	{
-		mavlink_command_short_t cmd;
-		mavlink_msg_command_short_decode(msg, &cmd);
-		/*printf("Message ID: %d\n", msg->msgid);
-		printf("Command ID: %d\n", cmd.command);
-		printf("Target System ID: %d\n", cmd.target_system);
-		printf("Target Component ID: %d\n", cmd.target_component);
-		printf("\n");*/
 
-		/*if (cmd.confirmation)
-		{
-			//printf("Confirmation requested, sending confirmation:\n");
-			mavlink_command_ack_t ack;
-			ack.command = cmd.command;
-			ack.result = 3;
-			mavlink_msg_command_ack_encode(getSystemID(), compid, &response, &ack);
-			sendMAVLinkMessage(lcm, &response);
-		}
-	}
-	break;*/
 	case MAVLINK_MSG_ID_ATTITUDE:
 		gettimeofday(&tv, NULL);
 		receiveTime = tv.tv_usec;

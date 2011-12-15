@@ -19,7 +19,7 @@ public:
 	Control();
 	virtual ~Control();
 
-	int flyToPos(Point3d pos, lcm_t *lcm, int compid);
+	int flyToPos(Vec3f p, lcm_t *lcm, int compid);
 
 };
 

@@ -26,7 +26,7 @@ bool Face::detectFace(cv::Mat &frame)
 
 	Mat imgROI = dFrame(ROI);
 
-	faceCascade.detectMultiScale(imgROI, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(27, 27));
+	faceCascade.detectMultiScale(imgROI, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(30, 30));
 
 	if (faces.size() == 0)
 		return false;
@@ -51,8 +51,6 @@ bool Face::detectFace(cv::Mat &frame)
 	pp2.x = (maxx + minx) * factor;
 	pp2.y = (maxy + miny) * factor;
 
-	rectangle(frame, pp1, pp2, cvScalar(255, 0, 0, 1));
-
 	Point p1, p2, p3, c;
 
 	p1.x = 0.33 * face.width + face.x;
@@ -60,10 +58,16 @@ bool Face::detectFace(cv::Mat &frame)
 	p3.x = 0.5 * face.width + face.x;
 	c.x = 0.5 * face.width + face.x;
 
-	p1.y = 0.33 * face.height + face.y;
+	p1.y = 0.27 * face.height + face.y;
 	p2.y = p1.y;
-	p3.y = 0.67 * face.height + face.y;
+	p3.y = 0.7 * face.height + face.y;
 	c.y = 0.5 * face.height + face.y;
+
+	Rect iFace;
+	iFace.x = 0.3 * face.width + face.x;
+	iFace.y = 0.3 * face.height + face.y;
+	iFace.width = 0.4 * face.width;
+	iFace.height = 0.4 * face.height;
 
 	int dX = faceProp.p1.x + faceProp.p2.x + faceProp.p3.x - p1.x - p2.x - p3.x;
 	int dY = faceProp.p1.y + faceProp.p2.y + faceProp.p3.y - p1.y - p2.y - p3.y;
@@ -95,14 +99,15 @@ bool Face::detectFace(cv::Mat &frame)
 	faceProp.p2 = p2;
 	faceProp.p3 = p3;
 	faceProp.c = c;
+	faceProp.r = iFace;
 
-    namedWindow("Face");
-    imshow("Face", frame(face));
+
+	rectangle(frame, iFace, cvScalar(255, 0, 0, 1));
 
 	return true;
 }
 
-int Face::init(cv::Mat frame)
+int Face::init(cv::Mat &frame)
 {
 	if (!faceCascade.load(faceCascadeName)) {
 		printf("--(!)Error loading %s\n", faceCascadeName.c_str());
@@ -115,4 +120,5 @@ int Face::init(cv::Mat frame)
 
 	return 0;
 }
+
 

@@ -20,6 +20,7 @@ public:
 
 	Point2i p1, p2, p3;
 	Point2i c;
+	Rect r;
 };
 
 #endif /* FACEPROP_H_ */
