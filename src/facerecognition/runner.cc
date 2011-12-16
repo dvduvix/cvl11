@@ -36,6 +36,7 @@ int compid = 112;
 bool verbose = false;
 bool debug = 0;
 double timef = 0;
+int countf, fps;
 
 static GString* configFile = g_string_new("config.cfg");
 string stereoCfg;
@@ -235,8 +236,8 @@ signalHandler(int signal)
 void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 		const mavconn_mavlink_msg_container_t* container, void* user)
 {
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
+	struct timeval t1, t2;
+	gettimeofday(&t1, NULL);
 
 	const mavlink_message_t* msg = getMAVLinkMsgPtr(container);
 	PxSHMImageClient* client = static_cast<PxSHMImageClient*>(user);
@@ -333,14 +334,25 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 			}*/
 		}
 
-		uint64_t currTime = ((uint64_t)tv.tv_sec) * 1000000 + tv.tv_usec;
-		uint64_t timestamp = client->getTimestamp(msg);
+		gettimeofday(&t2, NULL);
+		uint64_t time = ((uint64_t)t2.tv_sec) * 1000000 + t2.tv_usec
+					  - ((uint64_t)t1.tv_sec) * 1000000 + t1.tv_usec;
+		/*uint64_t timestamp = client->getTimestamp(msg);
 
-		uint64_t diff = currTime - timestamp;
+		uint64_t diff = currTime - timestamp;*/
 
-		stringstream ss (stringstream::in | stringstream::out);
+		stringstream ss(stringstream::in | stringstream::out);
 
-		ss << diff;
+		timef += (double)time / (double)10000000.;
+		countf++;
+		if (timef > 1.0) {
+			fps = countf;
+			timef = 0;
+			countf = 0;
+		}
+
+		ss << fps;
+
 
 		putText(imgL, ss.str(), cvPoint(10, 20), FONT_HERSHEY_PLAIN, 1, cvScalar(255, 0, 0, 1));
 
