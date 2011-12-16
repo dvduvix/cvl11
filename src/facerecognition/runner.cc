@@ -59,8 +59,6 @@ StereoProc stereo;
 bool foundFace = false;
 bool isInit = true;
 
-lcm_t *lcm;
-
 float colormap_jet[128][3] =
 {
 		{0.0f,0.0f,0.53125f},
@@ -193,6 +191,11 @@ float colormap_jet[128][3] =
 		{0.5f,0.0f,0.0f}
 };
 
+struct united {
+	PxSHMImageClient *imageClient;
+	lcm_t *lcm;
+} ClientUnited;
+
 void colorDepthImage(cv::Mat& imgDepth, cv::Mat& imgColoredDepth)
 {
 	imgColoredDepth = cv::Mat::zeros(imgDepth.size(), CV_8UC3);
@@ -240,7 +243,12 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 	gettimeofday(&t1, NULL);
 
 	const mavlink_message_t* msg = getMAVLinkMsgPtr(container);
-	PxSHMImageClient* client = static_cast<PxSHMImageClient*>(user);
+	//PxSHMImageClient* client = static_cast<PxSHMImageClient*>(user);
+
+	struct united *clientHandler = static_cast<struct united *>(user);
+
+	PxSHMImageClient* client = clientHandler->imageClient;
+	lcm_t *lcm = clientHandler->lcm;
 
 	cv::Mat imgToSave;
 	cv::Mat imgL, imgR, imgDepth, imgRectified;
@@ -353,7 +361,6 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
 		ss << fps;
 
-
 		putText(imgL, ss.str(), cvPoint(10, 20), FONT_HERSHEY_PLAIN, 1, cvScalar(255, 0, 0, 1));
 
 #ifndef NO_DISPLAY
@@ -393,7 +400,7 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 {
 	const mavlink_message_t* msg = getMAVLinkMsgPtr(container);
 //	mavlink_message_t response;
-    lcm = static_cast<lcm_t*>(user);
+	lcm_t *lcm = static_cast<lcm_t*>(user);
 //  printf("Received message #%d on channel \"%s\" (sys:%d|comp:%d):\n", msg->msgid, channel, msg->sysid, msg->compid);
 
 	switch(msg->msgid)
@@ -485,8 +492,13 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 	g_option_context_free(context);
+
+	struct united clientHandler;
 	// Handling Program options
 	lcm_t* lcm = lcm_create("udpm://");
+
+	clientHandler.lcm = lcm;
+
 	if (!lcm)
 	{
 		fprintf(stderr, "# ERROR: Cannot initialize LCM.\n");
@@ -519,8 +531,9 @@ int main(int argc, char* argv[])
 	// Ready to roll
 	fprintf(stderr, "# INFO: Image client ready, waiting for images...\n");
 
+	clientHandler.imageClient = &client;
 	// Subscribe to MAVLink messages on the image channel
-	mavconn_mavlink_msg_container_t_subscription_t* imgSub = mavconn_mavlink_msg_container_t_subscribe(lcm, MAVLINK_IMAGES, &imageHandler, &client);
+	mavconn_mavlink_msg_container_t_subscription_t* imgSub = mavconn_mavlink_msg_container_t_subscribe(lcm, MAVLINK_IMAGES, &imageHandler, &clientHandler);
 
 	signal(SIGINT, signalHandler);
 
