@@ -10,14 +10,14 @@ SET_SOURCE_FILES(EXAMPLE_SRC_FILES
   StereoProc.cc
 )
 
-PIXHAWK_EXECUTABLE(example-fr example-fr.cc
+PIXHAWK_EXECUTABLE(runner runner.cc
 				   Face Face.cpp
 				   FaceProp FaceProp.cpp
 				   StereoProc StereoProc.cc
 				   World World.cpp
 				   Control Control.cpp)
 
-PIXHAWK_LINK_LIBRARIES(example-fr
+PIXHAWK_LINK_LIBRARIES(runner
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${OPENCV_CALIB3D_LIBRARY_OPTIMIZED}

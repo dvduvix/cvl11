@@ -51,16 +51,51 @@ bool Face::detectFace(cv::Mat &frame)
 	pp2.x = (maxx + minx) * factor;
 	pp2.y = (maxy + miny) * factor;
 
+	///////////////////////////////////////////////////////////////////////////
+	// Picking points
+
+	std::vector<Rect> eyes;
+	Rect cFace = face;
+	cFace.height /= 2.;
+
+	eyesCascade.detectMultiScale(frame(cFace), eyes, 1.05, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(15, 15));
+
 	Point p1, p2, p3, c;
 
-	p1.x = 0.33 * face.width + face.x;
-	p2.x = 0.66 * face.width + face.x;
-	p3.x = 0.5 * face.width + face.x;
-	c.x = 0.5 * face.width + face.x;
-
-	p1.y = 0.27 * face.height + face.y;
+	p1.x = 0.3 * face.width + face.x;
+	p2.x = 0.7 * face.width + face.x;
+	p1.y = face.height / 2.6 + face.y;
 	p2.y = p1.y;
-	p3.y = 0.7 * face.height + face.y;
+
+	for (int i = 0; i < eyes.size(); ++i) {
+		if (i == 2)
+			break;
+
+		Rect eye = eyes[i];
+
+		if (eye.x < faces[0].width / 2.) {
+			p1.x = face.x + eye.width / 2. + eye.x;
+			p1.y = face.y + eye.height / 2. + eye.y;
+		} else {
+			p2.x = face.x + eye.width / 2. + eye.x;
+			p2.y = face.y + eye.height / 2. + eye.y;
+		}
+	}
+
+	std::vector<Rect> lips;
+	cFace.y += cFace.height;
+
+	lipsCascade.detectMultiScale(frame(cFace), lips, 1.05, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(25, 15));
+
+	if (lips.size() == 1) {
+		p3.x = face.x + lips[0].width / 2. + lips[0].x;
+		p3.y = face.y + lips[0].height / 2. + lips[0].y + cFace.height;
+	} else {
+		p3.x = 0.5 * face.width + face.x;
+		p3.y = 0.78 * face.height + face.y;
+	}
+
+	c.x = 0.5 * face.width + face.x;
 	c.y = 0.5 * face.height + face.y;
 
 	Rect iFace;
@@ -101,9 +136,6 @@ bool Face::detectFace(cv::Mat &frame)
 	faceProp.c = c;
 	faceProp.r = iFace;
 
-
-	rectangle(frame, iFace, cvScalar(255, 0, 0, 1));
-
 	return true;
 }
 
@@ -111,6 +143,16 @@ int Face::init(cv::Mat &frame)
 {
 	if (!faceCascade.load(faceCascadeName)) {
 		printf("--(!)Error loading %s\n", faceCascadeName.c_str());
+		return -1;
+	}
+
+	if (!eyesCascade.load(eyesCascadeName)) {
+		printf("--(!)Error loading %s\n", eyesCascadeName.c_str());
+		return -1;
+	}
+
+	if (!lipsCascade.load(lipsCascadeName)) {
+		printf("--(!)Error loading %s\n", lipsCascadeName.c_str());
 		return -1;
 	}
 

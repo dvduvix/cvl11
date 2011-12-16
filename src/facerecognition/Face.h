@@ -28,7 +28,9 @@ public:
 
 	bool detectFace(cv::Mat &frame);
 
-	string faceCascadeName;
+	string faceCascadeName,
+		   eyesCascadeName,
+		   lipsCascadeName;
 
 	FaceProp faceProp;
 
@@ -39,7 +41,9 @@ public:
 	FaceMotion direction;
 
 private:
-	CascadeClassifier faceCascade;
+	CascadeClassifier faceCascade,
+					  eyesCascade,
+					  lipsCascade;
 
 	Rect ROI;
 	int factor;

@@ -6,6 +6,7 @@
  */
 
 #include "World.h"
+#include <iostream>
 
 World::World() { }
 
@@ -15,36 +16,49 @@ Vec3f World::get3DPoint(Point2i p, Mat &depthImage, float focus)
 {
 	Vec3f point;
 	float z;
-
-	string loop = "DLUR";
-	int dist = 1,
-		coun = 1,
-		x = 0,
-		y = 0;
+	int d = 1;
 
 	z = depthImage.at<float>(p.y, p.x);
 
 	while (z == 0) {
-		x = y = 0;
+		vector<float> v;
+		for (int i = -d; i <= d; ++i) {
+			for (int j = -d; j <= d; ++j) {
+				if (p.y + i > depthImage.rows - 1 || p.x + j > depthImage.cols - 1 ||
+					p.y + i < 0 || p.x + j < 0)
+					continue;
 
-		if (loop.at(coun % 4) == 'D')
-			x = dist;
-		if (loop.at(coun % 4) == 'L')
-			y = -dist;
-		if (loop.at(coun % 4) == 'U')
-			x = -dist;
-		if (loop.at(coun % 4) == 'R')
-			y = dist;
+				if (i != d && i != -d && j != d && j != -d)
+					continue;
 
-		coun++;
+				float z_t = depthImage.at<float>(p.y + i, p.x + j);
 
-		if (coun % 4 == 0)
-			dist++;
+				if (z_t != 0) {
+					int s_t = v.size();
 
-		if (p.y + y > depthImage.rows || p.x + x > depthImage.cols)
-			continue;
+					if (s_t == 0)
+						v.push_back(z_t);
+					else
+					for (int s = 0; s < s_t; ++s) {
+						if (z_t < v.at(s)) {
+							vector<float>::iterator it = v.begin();
+							it += s;
+							v.insert(it, z_t);
+						} else if (s == s_t - 1) {
+							v.push_back(z_t);
+						}
+					}
+				}
+			}
+		}
 
-		z = depthImage.at<float>(p.y + y, p.x + x);
+		if (v.size() == 0) {
+			z = 0;
+			d++;
+		} else {
+			z = v.at(floor((v.size() - 1) / 2.));
+			break;
+		}
 	};
 
 	point[0] = (p.x - depthImage.cols / 2.) * z / focus;
@@ -111,8 +125,6 @@ Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus)
 	CvMat *matX = cvCreateMat(N, 3, CV_32FC1);
 	CvMat *matZ = cvCreateMat(N, 1, CV_32FC1);
 
-	printf("1 ... \n");
-
 	for(int i = 0; i < x; i+=f) {
 		for(int j = 0; j < y; j+=f) {
 			Point2i p;
@@ -122,8 +134,6 @@ Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus)
 			Vec3f t_p = get3DPoint(p, depthImage, focus);
 
 			int n = (i * x + j) / f;
-			if (n > N)
-				fprintf(stderr, "ERROR \n");
 
 			cvmSet(matX, n, 0, t_p[0]);
 			cvmSet(matX, n, 1, t_p[1]);
@@ -134,7 +144,6 @@ Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus)
 
 
 	cvSolve(matX, matZ, res, CV_SVD);
-	printf("2 ... \n");
 
 	float A = cvmGet(res, 0, 0);
 	float B = cvmGet(res, 1, 0);
@@ -143,9 +152,6 @@ Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus)
 	Vec3f t_p1 = get3DPoint(prop.p1, depthImage, focus);
 	Vec3f t_p2 = get3DPoint(prop.p2, depthImage, focus);
 	Vec3f t_p3 = get3DPoint(prop.p3, depthImage, focus);
-
-	printf("3 ... \n");
-
 
 	t_p1[2] =  (A * t_p1[0] + B * t_p1[1]) / C;
 	t_p2[2] = (A * t_p2[0] + B * t_p2[1]) / C;
