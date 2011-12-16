@@ -12,26 +12,26 @@ World::World() { }
 
 World::~World() { }
 
-Vec3f World::get3DPoint(Point2i p, Mat &depthImage, float focus)
+Vec3f World::get3DPoint(Vec2i p, Mat &depthImage, float focus)
 {
 	Vec3f point;
 	float z;
 	int d = 1;
 
-	z = depthImage.at<float>(p.y, p.x);
+	z = depthImage.at<float>(p[1], p[0]);
 
 	while (z == 0) {
 		vector<float> v;
 		for (int i = -d; i <= d; ++i) {
 			for (int j = -d; j <= d; ++j) {
-				if (p.y + i > depthImage.rows - 1 || p.x + j > depthImage.cols - 1 ||
-					p.y + i < 0 || p.x + j < 0)
+				if (p[1] + i > depthImage.rows - 1 || p[0] + j > depthImage.cols - 1 ||
+					p[1] + i < 0 || p[0] + j < 0)
 					continue;
 
 				if (i != d && i != -d && j != d && j != -d)
 					continue;
 
-				float z_t = depthImage.at<float>(p.y + i, p.x + j);
+				float z_t = depthImage.at<float>(p[1] + i, p[0] + j);
 
 				if (z_t != 0) {
 					int s_t = v.size();
@@ -61,8 +61,8 @@ Vec3f World::get3DPoint(Point2i p, Mat &depthImage, float focus)
 		}
 	};
 
-	point[0] = (p.x - depthImage.cols / 2.) * z / focus;
-	point[1] = (p.y - depthImage.rows / 2.) * z / focus;
+	point[0] = (p[0] - depthImage.cols / 2.) * z / focus;
+	point[1] = (p[1] - depthImage.rows / 2.) * z / focus;
 	point[2] = z;
 
 	return point;
@@ -160,4 +160,66 @@ Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus)
 	normal = normalFrom3DPoints(t_p1, t_p2, t_p3);
 
 	return normal;
+}
+
+Vec3f World::globalPoint(const mavlink_message_t *msg, PxSHMImageClient *client,
+		Vec2f &p, Mat &intresic, Mat &depthImage)
+{
+	float roll, pitch, yaw;
+	float x, y, z;
+
+	client->getRollPitchYaw(msg, roll, pitch, yaw);
+	client->getGroundTruth(msg, x, y, z);
+
+	float ca = cos(yaw);
+	float sa = sin(yaw);
+	float cb = cos(pitch);
+	float sb = sin(pitch);
+	float cg = cos(roll);
+	float sg = sin(roll);
+
+	float H1t[4][4] = {
+			{ca * cb,  ca * sb * sg - sa * cg,  ca * sb * cg + sa * sg,  x * 1000},
+			{sa * cb,  sa * sb * sg + ca * cg,  sa * sb * cg - ca * sg,  y * 1000},
+			{-sb, 	   cb * sg, 				cb * cg, 				 z * 1000},
+			{0, 	   0, 					    0, 					     1	     }
+	};
+
+	float H2t[4][4] = {
+			{0, 1, 0, 0},
+			{0, 0, 1, 0},
+			{1, 0, 0, 0},
+			{0, 0, 0, 1}
+	};
+
+	Mat H1(4, 4, CV_32FC1, H1t);
+	Mat H2(4, 4, CV_32FC1, H2t);
+
+	Mat H = H1 * H2.inv();
+	Mat iIntrensic;
+
+	invert(intresic, iIntrensic);
+
+	Vec3f pp;
+	pp[0] = (float)p[0];
+	pp[1] = (float)p[1];
+	pp[2] = (float)get3DPoint(p, depthImage, intresic.at<float>(0, 0))[2];
+
+	Mat toto = iIntrensic * cv::Mat(pp);
+
+	cv::Vec4f cameraPoint = cv::Vec4f(
+			toto.at<float>(0, 0),
+			toto.at<float>(1, 0),
+			toto.at<float>(2, 0) * 1000.0f,
+			1
+	);
+
+	Mat X = H * cv::Mat(cameraPoint);
+
+	Vec3f fP = Vec<float, 3>(
+			X.at<float>(0, 0) / X.at<float>(3, 0),
+			X.at<float>(1, 0) / X.at<float>(3, 0),
+			X.at<float>(2, 0) / X.at<float>(3, 0));
+
+	return fP;
 }

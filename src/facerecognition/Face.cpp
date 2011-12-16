@@ -60,7 +60,7 @@ bool Face::detectFace(cv::Mat &frame)
 
 	eyesCascade.detectMultiScale(frame(cFace), eyes, 1.05, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(15, 15));
 
-	Point p1, p2, p3, c;
+	Point p1, p2, p3;
 
 	p1.x = 0.3 * face.width + face.x;
 	p2.x = 0.7 * face.width + face.x;
@@ -95,8 +95,9 @@ bool Face::detectFace(cv::Mat &frame)
 		p3.y = 0.78 * face.height + face.y;
 	}
 
-	c.x = 0.5 * face.width + face.x;
-	c.y = 0.5 * face.height + face.y;
+	Vec2f c;
+	c[0] = 0.5 * face.width + face.x;
+	c[1] = 0.5 * face.height + face.y;
 
 	Rect iFace;
 	iFace.x = 0.3 * face.width + face.x;

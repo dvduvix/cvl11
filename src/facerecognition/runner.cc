@@ -194,7 +194,7 @@ float colormap_jet[128][3] =
 struct united {
 	PxSHMImageClient *imageClient;
 	lcm_t *lcm;
-} ClientUnited;
+};
 
 void colorDepthImage(cv::Mat& imgDepth, cv::Mat& imgColoredDepth)
 {
@@ -243,8 +243,6 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 	gettimeofday(&t1, NULL);
 
 	const mavlink_message_t* msg = getMAVLinkMsgPtr(container);
-	//PxSHMImageClient* client = static_cast<PxSHMImageClient*>(user);
-
 	struct united *clientHandler = static_cast<struct united *>(user);
 
 	PxSHMImageClient* client = clientHandler->imageClient;
@@ -260,11 +258,11 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 		exit(EXIT_FAILURE);
 	}
 
-	cv::Mat intrinsicMat;
-	cv::Mat imgDepthColor;
+	Mat intrinsicMat;
+	Mat imgDepthColor;
 
 	stereo.getImageInfo(intrinsicMat);
-	float focus = intrinsicMat.at<float>(0, 0);
+	//float focus = intrinsicMat.at<float>(0, 0);
 
 	if (client->readStereoImage(msg, imgL, imgR)) {
 
@@ -284,10 +282,6 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 			cv::namedWindow("Depth map");
 			cv::imshow("Depth map", imgDepthColor);*/
 
-			float roll, pitch, yaw;
-			client->getRollPitchYaw(msg, roll, pitch, yaw);
-			world->constructRotationMatrix(roll, pitch, yaw);
-
 			IplImage iImgL = imgL;
 
 			cvLine(&iImgL, face->faceProp.p1, face->faceProp.p2,
@@ -297,21 +291,25 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 			cvLine(&iImgL, face->faceProp.p2, face->faceProp.p3,
 					cvScalar(255, 0, 0, 1), 2);
 
-			Vec3f p3d3 = world->get3DPoint(face->faceProp.p3, imgDepth, focus);
-			Vec3f normal =
+			/*Vec3f p3d3 = world->get3DPoint(face->faceProp.p3, imgDepth, focus);
+			/*Vec3f normal =
 					world->normalFrom3DPoints(
 							world->get3DPoint(face->faceProp.p1, imgDepth, focus),
 							world->get3DPoint(face->faceProp.p2, imgDepth, focus),
-							p3d3);
+							p3d3);*/
 
+			//control->flyToPos(p3d3, lcm, compid);
 
-			control->flyToPos(p3d3, lcm, compid);
+			Vec3f pp =
+					world->globalPoint(msg, client, face->faceProp.c, intrinsicMat, imgDepth);
 
-			Point2i pw;
+			std::cerr << pp[0] << " " << pp[1] << " " << pp[2] << "\n";
+
+			/*Point2i pw;
 			pw.x = face->faceProp.c.x - 50 * normal[0];
 			pw.y = face->faceProp.c.y - 50 * normal[1];
 
-			cvLine(&iImgL, face->faceProp.c, pw, cvScalar(0, 0, 0, 1), 3);
+			cvLine(&iImgL, face->faceProp.c, pw, cvScalar(0, 0, 0, 1), 3);*/
 
 		} else {
 			/*switch (face->direction) {
@@ -345,9 +343,6 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 		gettimeofday(&t2, NULL);
 		uint64_t time = ((uint64_t)t2.tv_sec) * 1000000 + t2.tv_usec
 					  - ((uint64_t)t1.tv_sec) * 1000000 + t1.tv_usec;
-		/*uint64_t timestamp = client->getTimestamp(msg);
-
-		uint64_t diff = currTime - timestamp;*/
 
 		stringstream ss(stringstream::in | stringstream::out);
 
@@ -400,7 +395,7 @@ mavlink_handler (const lcm_recv_buf_t *rbuf, const char * channel,
 {
 	const mavlink_message_t* msg = getMAVLinkMsgPtr(container);
 //	mavlink_message_t response;
-	lcm_t *lcm = static_cast<lcm_t*>(user);
+//	lcm_t *lcm = static_cast<lcm_t*>(user);
 //  printf("Received message #%d on channel \"%s\" (sys:%d|comp:%d):\n", msg->msgid, channel, msg->sysid, msg->compid);
 
 	switch(msg->msgid)
@@ -494,6 +489,7 @@ int main(int argc, char* argv[])
 	g_option_context_free(context);
 
 	struct united clientHandler;
+
 	// Handling Program options
 	lcm_t* lcm = lcm_create("udpm://");
 
@@ -515,7 +511,6 @@ int main(int argc, char* argv[])
 	if( !g_thread_supported() )
 	{
 		g_thread_init(NULL);
-		// Only initialize g thread if not already done
 	}
 
 	if( (lcm_thread = g_thread_create((GThreadFunc)lcm_wait, (void *)lcm, TRUE, &err)) == NULL)
@@ -532,6 +527,7 @@ int main(int argc, char* argv[])
 	fprintf(stderr, "# INFO: Image client ready, waiting for images...\n");
 
 	clientHandler.imageClient = &client;
+
 	// Subscribe to MAVLink messages on the image channel
 	mavconn_mavlink_msg_container_t_subscription_t* imgSub = mavconn_mavlink_msg_container_t_subscribe(lcm, MAVLINK_IMAGES, &imageHandler, &clientHandler);
 
@@ -539,9 +535,6 @@ int main(int argc, char* argv[])
 
 	while (!quit)
 	{
-		// Block waiting for new image messages,
-		// once an image is received it will be
-		// displayed
 		lcm_handle(lcm);
 	}
 

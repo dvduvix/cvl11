@@ -19,7 +19,7 @@ public:
 	virtual ~FaceProp();
 
 	Point2i p1, p2, p3;
-	Point2i c;
+	Vec2f c;
 	Rect r;
 };
 
