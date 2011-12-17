@@ -10,17 +10,21 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include "mavconn.h"
+#include <interface/shared_mem/PxSHMImageClient.h>
 
 using namespace std;
 using namespace cv;
 
 class Control {
-public:
+ public:
 	Control();
 	virtual ~Control();
 
 	int flyToPos(Vec3f p, lcm_t *lcm, int compid);
-
+	Vec3f determinePosByDistance(const mavlink_message_t *msg,
+	                           PxSHMImageClient *client, Vec3f p);
+	int keepDistance(const mavlink_message_t *msg, PxSHMImageClient *client,
+	                 Vec3f p, lcm_t *lcm, int compid);
 };
 
 #endif /* CONTROL_H_ */

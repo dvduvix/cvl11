@@ -103,7 +103,7 @@ Vec3f World::normalFrom3DPoints(Vec3f s1, Vec3f s2, Vec3f s3)
 	float e1 = a[2] * b[0] - a[0] * b[2];
 	float e2 = a[0] * b[1] - a[1] * b[0];
 
-	float d = pow((float)(e0 * e0 + e1 * e1 + e2 * e2), (float)0.5);
+	float d = sqrt(e0 * e0 + e1 * e1 + e2 * e2);
 
 	normal[0] = e0 / d;
 	normal[1] = e1 / d;
