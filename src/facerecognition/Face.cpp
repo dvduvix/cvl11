@@ -15,9 +15,8 @@ Face::~Face() {}
  * @brief Detect face charachtersitcs
  *
  */
-bool Face::detectFace(cv::Mat &frame)
-{
-	Mat dFrame;
+bool Face::detectFace(cv::Mat &frame) {
+ 	Mat dFrame;
 	int tr = 10;
 
 	cv::resize(frame, dFrame, Size(), 1. / factor, 1. / factor, INTER_AREA);
@@ -67,7 +66,7 @@ bool Face::detectFace(cv::Mat &frame)
 	p1.y = face.height / 2.6 + face.y;
 	p2.y = p1.y;
 
-	for (int i = 0; i < eyes.size(); ++i) {
+	for (unsigned int i = 0; i < eyes.size(); ++i) {
 		if (i == 2)
 			break;
 
@@ -85,7 +84,7 @@ bool Face::detectFace(cv::Mat &frame)
 	std::vector<Rect> lips;
 	cFace.y += cFace.height;
 
-	lipsCascade.detectMultiScale(frame(cFace), lips, 1.05, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(25, 15));
+	lipsCascade.detectMultiScale(frame(cFace), lips, 1.05, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(25, 15));
 
 	if (lips.size() == 1) {
 		p3.x = face.x + lips[0].width / 2. + lips[0].x;
@@ -105,7 +104,7 @@ bool Face::detectFace(cv::Mat &frame)
 	iFace.width = 0.4 * face.width;
 	iFace.height = 0.4 * face.height;
 
-	int dX = faceProp.p1.x + faceProp.p2.x + faceProp.p3.x - p1.x - p2.x - p3.x;
+/*	int dX = faceProp.p1.x + faceProp.p2.x + faceProp.p3.x - p1.x - p2.x - p3.x;
 	int dY = faceProp.p1.y + faceProp.p2.y + faceProp.p3.y - p1.y - p2.y - p3.y;
 
 	if (abs(abs(dX) - abs(dY)) > tr) {
@@ -129,7 +128,7 @@ bool Face::detectFace(cv::Mat &frame)
 			direction = FaceMotion::DL;
 		else
 			direction = FaceMotion::UR;
-	}
+	}*/
 
 	faceProp.p1 = p1;
 	faceProp.p2 = p2;
@@ -140,8 +139,7 @@ bool Face::detectFace(cv::Mat &frame)
 	return true;
 }
 
-int Face::init(cv::Mat &frame)
-{
+int Face::init(cv::Mat &frame) {
 	if (!faceCascade.load(faceCascadeName)) {
 		printf("--(!)Error loading %s\n", faceCascadeName.c_str());
 		return -1;

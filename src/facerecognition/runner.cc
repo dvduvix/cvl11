@@ -23,7 +23,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-
 bool verbose      = false;
 bool gui          = false;
 bool agui         = false;
@@ -33,6 +32,7 @@ bool foundFace    = false;
 bool isInit       = true;
 bool quit         = false;
 bool debug        = 0;
+bool fpsb         = false;
 double timef      = 0;
 int imageCounter  = 0;
 int sysid         = 42;
@@ -156,7 +156,8 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
   ///////////////////////////////////////////////////////////////////////////
 
   struct timeval t1, t2;
-  gettimeofday(&t1, NULL);
+  if (gui || fpsb)
+    gettimeofday(&t1, NULL);
 
   const mavlink_message_t* msg = getMAVLinkMsgPtr(container);
   struct united *clientHandler = static_cast<struct united *>(user);
@@ -230,24 +231,25 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 //			cvLine(&iImgL, cvPoint(face->faceProp.c[0], face->faceProp.c[1]),
 //					p, cvScalar(0, 0, 0, 1), 3);
 
-      Point2i pw, kw;
-      pw.x = imgL.cols / 2. - imgL.cols / 4. * normal[0];
-      pw.y = imgL.rows - 8;
+        Point2i pw, kw;
+        pw.x = imgL.cols / 2. - imgL.cols / 4. * normal[0];
+        pw.y = imgL.rows - 8;
 
-      cvLine(&iImgL, cvPoint(imgL.cols / 2, pw.y), pw, cvScalar(255, 0, 0, 1),
-             10);
+        if (gui)
+          cvLine(&iImgL, cvPoint(imgL.cols / 2, pw.y), pw, cvScalar(255, 0, 0, 1),
+                 10);
 
-      measurement(0) = pw.x * (1 - abs(pw.x - gW.x) / imgL.cols);
-      measurement(1) = pw.y;
+        measurement(0) = pw.x * (1 - abs(pw.x - gW.x) / imgL.cols);
+        measurement(1) = pw.y;
 
-      Mat estimated = KF.correct(measurement);
-      Point statePt(estimated.at<float>(0), estimated.at<float>(1));
+        Mat estimated = KF.correct(measurement);
+        Point statePt(estimated.at<float>(0), estimated.at<float>(1));
 
-      gW = kw = statePt;
+        gW = kw = statePt;
 
-      cvLine(&iImgL, cvPoint(imgL.cols / 2, kw.y - 8), cvPoint(kw.x, kw.y - 8),
-          cvScalar(128, 0, 0, 1), 10);
-
+        if (gui)
+          cvLine(&iImgL, cvPoint(imgL.cols / 2, kw.y - 8), cvPoint(kw.x, kw.y - 8),
+                 cvScalar(128, 0, 0, 1), 10);
     } else {
       /*switch (face->direction) {
        case Face::D :
@@ -277,27 +279,32 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
        }*/
     }
 
-    gettimeofday(&t2, NULL);
-    uint64_t time = ((uint64_t) t2.tv_sec) * 1000000 + t2.tv_usec
-                  - ((uint64_t) t1.tv_sec) * 1000000 + t1.tv_usec;
+    if (gui || fpsb) {
+      gettimeofday(&t2, NULL);
+      uint64_t time = ((uint64_t) t2.tv_sec) * 1000000 + t2.tv_usec
+                    - ((uint64_t) t1.tv_sec) * 1000000 - t1.tv_usec;
 
-    stringstream ss(stringstream::in | stringstream::out);
+      stringstream ss(stringstream::in | stringstream::out);
 
-    timef += time / 10000000.;
-    countf++;
+      timef += time / 1000000.;
+      countf++;
 
-    if (timef > 1.0) {
-      fps = countf;
-      timef = 0;
-      countf = 0;
+      if (timef > 1.0) {
+        fps = countf;
+        timef = 0;
+        countf = 0;
+      }
+
+      ss << fps;
+
+      if (fpsb)
+        cout << "FPS: " << fps << endl;
+
+      putText(imgL, ss.str(), cvPoint(10, 20), FONT_HERSHEY_PLAIN, 1,
+          cvScalar(255, 0, 0, 1));
     }
 
-    ss << fps;
-
-    putText(imgL, ss.str(), cvPoint(10, 20), FONT_HERSHEY_PLAIN, 1,
-        cvScalar(255, 0, 0, 1));
-
-    if (gui || agui) {
+    if (gui) {
       if ((client->getCameraConfig() & PxSHM::CAMERA_FORWARD_LEFT)
           == PxSHM::CAMERA_FORWARD_LEFT) {
         cv::namedWindow("Left Image (Forward Camera)");
@@ -309,7 +316,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
     }
   }
 
-  if (gui) {
+  if (gui || agui) {
     int c = cv::waitKey(3);
 
     switch (static_cast<char>(c)) {
@@ -372,16 +379,18 @@ void *lcm_wait(void *lcm_ptr) {
 }
 
 static GOptionEntry entries[] = {
-//{ "sysid", 'a', 0, G_OPTION_ARG_INT, &sysid, "ID of this system, 1-255", "42"},
-//{ "compid", 'c', 0, G_OPTION_ARG_INT, &compid, "ID of this component, 1-255", "55" },
+    //{ "sysid", 'a', 0, G_OPTION_ARG_INT, &sysid, "ID of this system, 1-255", "42"},
+    //{ "compid", 'c', 0, G_OPTION_ARG_INT, &compid, "ID of this component, 1-255", "55" },
     { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose",
         (verbose) ? "true" : "false" }, { "gui", 'g', 0, G_OPTION_ARG_NONE,
-        &gui, "Show windows", (gui) ? "true" : "false" },
-    { "agui", 'a', 0, G_OPTION_ARG_NONE, &agui, "Show advanced windows", (agui) ? "true" : "false" },
-    //{ "oktogo", 'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" },
-    //{ "oktogod", 'O', 0, G_OPTION_ARG_NONE, &okd, "Ok to go and debug", (okd) ? "true" : "false" },
-    //{ "config", 'f', 0, G_OPTION_ARG_STRING, configFile, "Filename of paramClient config file", "config/parameters_2pt.cfg"},
-    { NULL } };
+            &gui, "Show windows", (gui) ? "true" : "false" },
+            { "agui", 'a', 0, G_OPTION_ARG_NONE, &agui, "Show advanced windows", (agui) ? "true" : "false" },
+            { "fps", 'f', 0, G_OPTION_ARG_NONE, &fpsb, "Show advanced windows", (fpsb) ? "true" : "false" },
+            //{ "oktogo", 'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" },
+            //{ "oktogod", 'O', 0, G_OPTION_ARG_NONE, &okd, "Ok to go and debug", (okd) ? "true" : "false" },
+            //{ "config", 'f', 0, G_OPTION_ARG_STRING, configFile, "Filename of paramClient config file", "config/parameters_2pt.cfg"},
+            { NULL }
+};
 
 int main(int argc, char* argv[]) {
   /////////////////////////////////////////////////////////////////////////////
@@ -439,8 +448,8 @@ int main(int argc, char* argv[]) {
     g_thread_init(NULL);
   }
 
-  if ((lcm_thread =
-      g_thread_create((GThreadFunc)lcm_wait, (void *)lcm, TRUE, &err)) == NULL) {
+  if ((lcm_thread = g_thread_create((GThreadFunc)lcm_wait, (void *)lcm, TRUE,
+                                    &err)) == NULL) {
     printf("Thread create failed: %s!!\n", err->message);
     g_error_free(err);
   }
