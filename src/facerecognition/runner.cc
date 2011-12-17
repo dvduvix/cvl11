@@ -380,16 +380,17 @@ void *lcm_wait(void *lcm_ptr) {
 
 static GOptionEntry entries[] = {
     //{ "sysid", 'a', 0, G_OPTION_ARG_INT, &sysid, "ID of this system, 1-255", "42"},
-    //{ "compid", 'c', 0, G_OPTION_ARG_INT, &compid, "ID of this component, 1-255", "55" },
+//{ "compid", 'c', 0, G_OPTION_ARG_INT, &compid, "ID of this component, 1-255", "55" },
     { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose",
         (verbose) ? "true" : "false" }, { "gui", 'g', 0, G_OPTION_ARG_NONE,
-            &gui, "Show windows", (gui) ? "true" : "false" },
-            { "agui", 'a', 0, G_OPTION_ARG_NONE, &agui, "Show advanced windows", (agui) ? "true" : "false" },
-            { "fps", 'f', 0, G_OPTION_ARG_NONE, &fpsb, "Show advanced windows", (fpsb) ? "true" : "false" },
-            //{ "oktogo", 'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" },
-            //{ "oktogod", 'O', 0, G_OPTION_ARG_NONE, &okd, "Ok to go and debug", (okd) ? "true" : "false" },
-            //{ "config", 'f', 0, G_OPTION_ARG_STRING, configFile, "Filename of paramClient config file", "config/parameters_2pt.cfg"},
-            { NULL }
+        &gui, "Show windows", (gui) ? "true" : "false" }, { "agui", 'a', 0,
+        G_OPTION_ARG_NONE, &agui, "Show advanced windows",
+            (agui) ? "true" : "false" }, { "fps", 'f', 0, G_OPTION_ARG_NONE,
+        &fpsb, "Show advanced windows", (fpsb) ? "true" : "false" },
+    //{ "oktogo", 'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" },
+    //{ "oktogod", 'O', 0, G_OPTION_ARG_NONE, &okd, "Ok to go and debug", (okd) ? "true" : "false" },
+    //{ "config", 'f', 0, G_OPTION_ARG_STRING, configFile, "Filename of paramClient config file", "config/parameters_2pt.cfg"},
+    { NULL }
 };
 
 int main(int argc, char* argv[]) {
@@ -409,7 +410,6 @@ int main(int argc, char* argv[]) {
     face->faceCascadeName = "haarcascade_frontalface_alt.xml";
     face->eyesCascadeName = "haarcascade_eye_tree_eyeglasses.xml";
     face->lipsCascadeName = "haarcascade_mcs_mouth.xml";
-
   /////////////////////////////////////////////////////////////////////////////
 
   GError *error = NULL;
