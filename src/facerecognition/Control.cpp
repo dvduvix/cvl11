@@ -32,6 +32,8 @@ int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 
 Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
                                       PxSHMImageClient *client, Vec3f p) {
+  float keep = 1.1f;
+
   float x, y, z;
 
   client->getGroundTruth(msg, x, y, z);
@@ -42,7 +44,12 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
   float D = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 
   v = Vec3f(v[0] / D, v[1] / D, v[2] / D);
-  v = v * (D - 1);
+
+  if (D > keep) {
+    v = v * (D - keep);
+  } else {
+    v = - v * (keep - D);
+  }
 
   Vec3f P = g + v;
 
