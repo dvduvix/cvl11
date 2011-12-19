@@ -19,6 +19,9 @@ int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 	pos.y   = p[1];
 	pos.z   = p[2];
 	pos.yaw = yaw;
+	pos.target_system     = getSystemID();
+	pos.target_component  = 200;
+	pos.coordinate_frame = 1;
 
 	mavlink_msg_set_local_position_setpoint_encode(getSystemID(), compid, &msg,
 	                                               &pos);
@@ -55,7 +58,7 @@ int Control::keepDistance(const mavlink_message_t *msg,
   return 0;
 }
 
-int Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client,
+Vec3f Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client,
                         Vec3f ap, float rate, lcm_t *lcm, int compid) {
 
   float x, y, z;

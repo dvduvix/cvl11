@@ -27,7 +27,6 @@ bool verbose      = false;
 bool gui          = false;
 bool agui         = false;
 bool ok           = false;
-bool okd          = false;
 bool foundFace    = false;
 bool isInit       = true;
 bool quit         = false;
@@ -49,6 +48,8 @@ StereoProc stereo;
 
 std::string fileBaseName("frame");
 std::string fileExt(".png");
+
+Vec3f apt(100, 100, 100);
 
 using namespace std;
 using namespace cv;
@@ -215,8 +216,21 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
           world->get3DPoint(face->faceProp.p1, imgDepth, focus),
           world->get3DPoint(face->faceProp.p2, imgDepth, focus), p3d3);
 
-      if (ok)
-        control->keepDistance(msg, client, p3d3, lcm, compid);
+      if (ok) {
+        //control->keepDistance(msg, client, p3d3, lcm, compid);
+
+        float x, y, z;
+        client->getGroundTruth(msg, x, y, z);
+
+        float er = 0.001;
+
+        if (apt[0] == 100 || (abs(apt[0] - x) < er && abs(apt[1] - y) < er &&
+                              abs(apt[3] - z) < er)) {
+          Vec3f ap(0, 0, 0);
+          float rate = M_PI / 16;
+          apt = control->loopAround(msg, client, ap, rate, lcm, compid);
+        }
+      }
 
       Vec3f pp = world->globalPoint(msg, client, face->faceProp.c, intrinsicMat,
           imgDepth);
@@ -387,9 +401,7 @@ static GOptionEntry entries[] = {
         G_OPTION_ARG_NONE, &agui, "Show advanced windows",
             (agui) ? "true" : "false" }, { "fps", 'f', 0, G_OPTION_ARG_NONE,
         &fpsb, "Show advanced windows", (fpsb) ? "true" : "false" }, { "oktogo",
-        'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" }, {
-        "oktogod", 'O', 0, G_OPTION_ARG_NONE, &okd, "Ok to go and debug",
-            (okd) ? "true" : "false" },
+        'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" },
         //{ "config", 'f', 0, G_OPTION_ARG_STRING, configFile, "Filename of paramClient config file", "config/parameters_2pt.cfg"},
     { NULL }
 };
@@ -458,19 +470,10 @@ int main(int argc, char* argv[]) {
   PxSHMImageClient client;
   client.init(true, PxSHM::CAMERA_FORWARD_LEFT, PxSHM::CAMERA_FORWARD_RIGHT);
   //client.init(true, PxSHM::CAMERA_FORWARD_LEFT);
-  /*
-   if (verbose) {
-   gui = agui = ok = okd = false;
-   } else if (gui) {
-   verbose = agui = ok = okd = false;
-   } else if (agui) {
-   gui = verbose = true;
-   ok = okd = false;
-   } else if (okd) {
-   agui = gui = verbose = ok = true;
-   } else if (ok) {
-   agui = gui = verbose = okd = false;
-   }*/
+
+  if (ok)
+    gui = agui = ok = verbose = true;
+
 
   if (verbose)
     fprintf(stderr, "# INFO: Image client ready, waiting for images...\n");
