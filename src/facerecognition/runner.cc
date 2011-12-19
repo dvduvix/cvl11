@@ -386,10 +386,11 @@ static GOptionEntry entries[] = {
         &gui, "Show windows", (gui) ? "true" : "false" }, { "agui", 'a', 0,
         G_OPTION_ARG_NONE, &agui, "Show advanced windows",
             (agui) ? "true" : "false" }, { "fps", 'f', 0, G_OPTION_ARG_NONE,
-        &fpsb, "Show advanced windows", (fpsb) ? "true" : "false" },
-    //{ "oktogo", 'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" },
-    //{ "oktogod", 'O', 0, G_OPTION_ARG_NONE, &okd, "Ok to go and debug", (okd) ? "true" : "false" },
-    //{ "config", 'f', 0, G_OPTION_ARG_STRING, configFile, "Filename of paramClient config file", "config/parameters_2pt.cfg"},
+        &fpsb, "Show advanced windows", (fpsb) ? "true" : "false" }, { "oktogo",
+        'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" }, {
+        "oktogod", 'O', 0, G_OPTION_ARG_NONE, &okd, "Ok to go and debug",
+            (okd) ? "true" : "false" },
+        //{ "config", 'f', 0, G_OPTION_ARG_STRING, configFile, "Filename of paramClient config file", "config/parameters_2pt.cfg"},
     { NULL }
 };
 

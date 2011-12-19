@@ -26,7 +26,7 @@ class Control {
 	int keepDistance(const mavlink_message_t *msg, PxSHMImageClient *client,
 	                 Vec3f p, lcm_t *lcm, int compid);
 	int loopAround(const mavlink_message_t *msg, PxSHMImageClient *client,
-	               Vec3f a, float rate, lcm_t *lcm, int compid);
+	               Vec3f ap, float rate, lcm_t *lcm, int compid);
 };
 
 #endif /* CONTROL_H_ */
