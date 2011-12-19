@@ -264,8 +264,8 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       struct timeval tv;
       gettimeofday(&tv, NULL);
 
-      p3d3[2] = z_const;
-      control->keepDistance(msg, client, p3d3, lcm, compid);
+      pp[2] = z_const;
+      control->keepDistance(msg, client, pp, apt_yaw, lcm, compid);
 
       float x, y, z;
       client->getGroundTruth(msg, x, y, z);
@@ -276,7 +276,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       apt[0] = x;
       apt[1] = y;
       apt[2] = z_const;
-      apt_yaw = yaw;
+     // apt_yaw = yaw;
     } else {
       control->flyToPos(apt, apt_yaw, lcm, compid);
     }

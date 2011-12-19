@@ -43,6 +43,8 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
 
   float D = sqrt(v[0] * v[0] + v[1] * v[1]);
 
+  printf("Distance: %f \n", D);
+
   v = Vec3f(v[0] / D, v[1] / D, 0);
 
   if (D > keep) {
@@ -59,9 +61,9 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
 }
 
 int Control::keepDistance(const mavlink_message_t *msg,
-                          PxSHMImageClient *client, Vec3f p, lcm_t *lcm,
-                          int compid) {
-  flyToPos(determinePosByDistance(msg, client, p), 0, lcm, compid);
+                          PxSHMImageClient *client, Vec3f p, float yaw,
+                          lcm_t *lcm, int compid) {
+  flyToPos(determinePosByDistance(msg, client, p), yaw, lcm, compid);
 
   return 0;
 }
