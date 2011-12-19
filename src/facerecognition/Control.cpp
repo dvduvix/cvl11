@@ -25,7 +25,6 @@ int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 
 	mavlink_msg_set_local_position_setpoint_encode(getSystemID(), compid, &msg,
 	                                               &pos);
-
 	sendMAVLinkMessage(lcm, &msg);
 
 	return 0;
@@ -62,10 +61,12 @@ Vec3f Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client
                         Vec3f ap, float rate, lcm_t *lcm, int compid) {
 
   float x, y, z;
+  float roll, pitch, yaw;
 
   client->getGroundTruth(msg, x, y, z);
+  client->getRollPitchYaw(msg, roll, pitch, yaw);
 
-  float a, b, r, new_x, new_y;
+  float a, b, r;
 
   a = ap[0];
   b = ap[1];
@@ -73,7 +74,9 @@ Vec3f Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client
 
   Vec3f p(a + r * cos(rate), b + r * sin(rate), z);
 
+  rate = yaw + rate;
+
   flyToPos(p, rate, lcm, compid);
 
-  return 0;
+  return p;
 }

@@ -216,28 +216,12 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
           world->get3DPoint(face->faceProp.p1, imgDepth, focus),
           world->get3DPoint(face->faceProp.p2, imgDepth, focus), p3d3);
 
-      if (ok) {
-        //control->keepDistance(msg, client, p3d3, lcm, compid);
-
-        float x, y, z;
-        client->getGroundTruth(msg, x, y, z);
-
-        float er = 0.001;
-
-        if (apt[0] == 100 || (abs(apt[0] - x) < er && abs(apt[1] - y) < er &&
-                              abs(apt[3] - z) < er)) {
-          Vec3f ap(0, 0, 0);
-          float rate = M_PI / 16;
-          apt = control->loopAround(msg, client, ap, rate, lcm, compid);
-        }
-      }
-
       Vec3f pp = world->globalPoint(msg, client, face->faceProp.c, intrinsicMat,
           imgDepth);
 
-      if (verbose)
+     /* if (verbose)
         std::cerr << pp[0] << " " << pp[1] << " " << pp[2] << "\n";
-
+*/
 //			Point2i p;
 //			p.x = face->faceProp.c[0] - 50 * normal[0];
 //			p.y = face->faceProp.c[1] - 50 * normal[1];
@@ -265,33 +249,27 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
           cvLine(&iImgL, cvPoint(imgL.cols / 2, kw.y - 8), cvPoint(kw.x, kw.y - 8),
                  cvScalar(128, 0, 0, 1), 10);
     } else {
-      /*switch (face->direction) {
-       case Face::D :
-       printf("V V Down ... \n");
-       break;
-       case Face::U :
-       printf("^ ^ Up ... \n");
-       break;
-       case Face::L :
-       printf("< < Left ... \n");
-       break;
-       case Face::R :
-       printf("> > Right ... \n");
-       break;
-       case Face::UL :
-       printf("^ < Up Left ... \n");
-       break;
-       case Face::UR :
-       printf("^ > Up Right ... \n");
-       break;
-       case Face::DL :
-       printf("V < Down Left... \n");
-       break;
-       case Face::DR :
-       printf("V > Down Right... \n");
-       break;
-       }*/
     }
+
+    if (ok) {
+      //control->keepDistance(msg, client, p3d3, lcm, compid);
+      printf("Some morron decided to let me fly... \n");
+      float x, y, z;
+      client->getGroundTruth(msg, x, y, z);
+      printf("Location : x: %f y: %f z: %f\n", x, y, z);
+
+      float er = 0.001;
+
+      if (apt[0] == 100 || (abs(apt[0] - x) < er && abs(apt[1] - y) < er &&
+                            abs(apt[2] - z) < er)) {
+        Vec3f ap(0, 0, 0);
+        float rate = M_PI / 16;
+        apt = control->loopAround(msg, client, ap, rate, lcm, compid);
+
+        printf("Location : x: %f y: %f z: %f\n", apt[0], apt[1], apt[1]);
+      }
+    }
+
 
     if (gui || fpsb) {
       gettimeofday(&t2, NULL);
@@ -471,6 +449,7 @@ int main(int argc, char* argv[]) {
   client.init(true, PxSHM::CAMERA_FORWARD_LEFT, PxSHM::CAMERA_FORWARD_RIGHT);
   //client.init(true, PxSHM::CAMERA_FORWARD_LEFT);
 
+  ok = true;
   if (ok)
     gui = agui = ok = verbose = true;
 
