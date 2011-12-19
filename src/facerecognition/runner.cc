@@ -33,25 +33,24 @@ bool quit         = false;
 bool debug        = 0;
 bool fpsb         = false;
 double timef      = 0;
-float z_const     = -1.8;
+float z_const     = -1.0f;
 int imageCounter  = 0;
 int sysid         = 42;
 int compid        = 112;
 static GString* configFile = g_string_new("config.cfg");
 
 int countf, fps;
-double init_time;
 struct timeval tv;
 string stereoCfg;
 Face *face;
 World *world;
 Control *control;
 StereoProc stereo;
+Vec3f apt;
+float apt_yaw;
 
 std::string fileBaseName("frame");
 std::string fileExt(".png");
-
-Vec3f apt(100, 100, 100);
 
 using namespace std;
 using namespace cv;
@@ -191,14 +190,14 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
       float x, y, z;
       client->getGroundTruth(msg, x, y, z);
+
+      float roll, pitch, yaw;
+      client->getRollPitchYaw(msg, roll, pitch, yaw);
+
       apt[0] = x;
       apt[1] = y;
       apt[2] = z_const;
-
-      struct timeval tv;
-      gettimeofday(&tv, NULL);
-      init_time = tv.tv_sec;
-      printf("Initial time %f \n", init_time);
+      apt_yaw = yaw;
     }
 
     foundFace = face->detectFace(imgL);
@@ -242,37 +241,48 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 //			cvLine(&iImgL, cvPoint(face->faceProp.c[0], face->faceProp.c[1]),
 //					p, cvScalar(0, 0, 0, 1), 3);
 
-        Point2i pw, kw;
-        pw.x = imgL.cols / 2. - imgL.cols / 4. * normal[0];
-        pw.y = imgL.rows - 8;
+      Point2i pw, kw;
+      pw.x = imgL.cols / 2. - imgL.cols / 4. * normal[0];
+      pw.y = imgL.rows - 8;
 
-        if (gui)
-          cvLine(&iImgL, cvPoint(imgL.cols / 2, pw.y), pw, cvScalar(255, 0, 0, 1),
-                 10);
+      if (gui)
+        cvLine(&iImgL, cvPoint(imgL.cols / 2, pw.y), pw, cvScalar(255, 0, 0, 1),
+               10);
 
-        measurement(0) = pw.x * (1 - abs(pw.x - gW.x) / imgL.cols);
-        measurement(1) = pw.y;
+      measurement(0) = pw.x * (1 - abs(pw.x - gW.x) / imgL.cols);
+      measurement(1) = pw.y;
 
-        Mat estimated = KF.correct(measurement);
-        Point statePt(estimated.at<float>(0), estimated.at<float>(1));
+      Mat estimated = KF.correct(measurement);
+      Point statePt(estimated.at<float>(0), estimated.at<float>(1));
 
-        gW = kw = statePt;
+      gW = kw = statePt;
 
-        if (gui)
-          cvLine(&iImgL, cvPoint(imgL.cols / 2, kw.y - 8), cvPoint(kw.x, kw.y - 8),
-                 cvScalar(128, 0, 0, 1), 10);
+      if (gui)
+        cvLine(&iImgL, cvPoint(imgL.cols / 2, kw.y - 8), cvPoint(kw.x, kw.y - 8),
+               cvScalar(128, 0, 0, 1), 10);
 
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        if (abs(init_time - tv.tv_sec) > 10) {
-          p3d3[2] = z_const;
-          control->keepDistance(msg, client, p3d3, lcm, compid);
-        } else {
-          control->keepDistance(msg, client, apt, lcm, compid);
-          printf("Get ready ... %f \n", abs(init_time - tv.tv_sec));
-        }
+      struct timeval tv;
+      gettimeofday(&tv, NULL);
+
+      p3d3[2] = z_const;
+      control->keepDistance(msg, client, p3d3, lcm, compid);
+
+      float x, y, z;
+      client->getGroundTruth(msg, x, y, z);
+
+      float roll, pitch, yaw;
+      client->getRollPitchYaw(msg, roll, pitch, yaw);
+
+      apt[0] = x;
+      apt[1] = y;
+      apt[2] = z_const;
+      apt_yaw = yaw;
     } else {
+      control->flyToPos(apt, apt_yaw, lcm, compid);
     }
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
 
     /*if (ok) {
       //control->keepDistance(msg, client, p3d3, lcm, compid);
