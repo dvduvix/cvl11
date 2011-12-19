@@ -33,12 +33,14 @@ bool quit         = false;
 bool debug        = 0;
 bool fpsb         = false;
 double timef      = 0;
+float z_const     = -1.8;
 int imageCounter  = 0;
 int sysid         = 42;
 int compid        = 112;
 static GString* configFile = g_string_new("config.cfg");
 
 int countf, fps;
+double init_time;
 struct timeval tv;
 string stereoCfg;
 Face *face;
@@ -186,6 +188,17 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
     if (isInit) {
       face->init(imgL);
       isInit = false;
+
+      float x, y, z;
+      client->getGroundTruth(msg, x, y, z);
+      apt[0] = x;
+      apt[1] = y;
+      apt[2] = z_const;
+
+      struct timeval tv;
+      gettimeofday(&tv, NULL);
+      init_time = tv.tv_sec;
+      printf("Initial time %f \n", init_time);
     }
 
     foundFace = face->detectFace(imgL);
@@ -248,10 +261,20 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
         if (gui)
           cvLine(&iImgL, cvPoint(imgL.cols / 2, kw.y - 8), cvPoint(kw.x, kw.y - 8),
                  cvScalar(128, 0, 0, 1), 10);
+
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        if (abs(init_time - tv.tv_sec) > 10) {
+          p3d3[2] = z_const;
+          control->keepDistance(msg, client, p3d3, lcm, compid);
+        } else {
+          control->keepDistance(msg, client, apt, lcm, compid);
+          printf("Get ready ... %f \n", abs(init_time - tv.tv_sec));
+        }
     } else {
     }
 
-    if (ok) {
+    /*if (ok) {
       //control->keepDistance(msg, client, p3d3, lcm, compid);
       if (verbose)
         printf("Some morron decided to let me fly... \n");
@@ -275,7 +298,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
       control->flyToPos(apt, 0, lcm, compid);
 
-    }
+    }*/
 
 
     if (gui || fpsb) {
