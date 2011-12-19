@@ -253,11 +253,13 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
     if (ok) {
       //control->keepDistance(msg, client, p3d3, lcm, compid);
-      printf("Some morron decided to let me fly... \n");
+      if (verbose)
+        printf("Some morron decided to let me fly... \n");
 
       float x, y, z;
       client->getGroundTruth(msg, x, y, z);
-      printf("Location : x: %f y: %f z: %f\n", x, y, z);
+      if (verbose)
+        printf("Location : x: %f y: %f z: %f\n", x, y, z);
 
       float er = 0.001;
       Vec3f ap(0, 0, 0);
@@ -267,7 +269,8 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       if (apt[0] == 100 || (abs(apt[0] - x) < er && abs(apt[1] - y) < er &&
                             abs(apt[2] - z) < er)) {
         apt = control->loopAround(msg, client, ap, rate, lcm, compid);
-        printf("Sending : x: %f y: %f z: %f\n", apt[0], apt[1], apt[1]);
+        if (verbose)
+          printf("Sending : x: %f y: %f z: %f\n", apt[0], apt[1], apt[1]);
       }
 
       control->flyToPos(apt, 0, lcm, compid);
@@ -420,7 +423,7 @@ int main(int argc, char* argv[]) {
 
   g_option_context_free(context);
 
-  printf("Verbose : %d, Gui : %d \n", verbose, gui);
+  printf("Verbose : %d, Gui : %d, AGui : % d, Ok : %d \n", verbose, gui, agui, ok);
 
   struct united clientHandler;
   lcm_t* lcm = lcm_create("udpm://");
@@ -453,10 +456,10 @@ int main(int argc, char* argv[]) {
   client.init(true, PxSHM::CAMERA_FORWARD_LEFT, PxSHM::CAMERA_FORWARD_RIGHT);
   //client.init(true, PxSHM::CAMERA_FORWARD_LEFT);
 
-  ok = true;
+  /*ok = true;
   if (ok)
     gui = agui = ok = verbose = true;
-
+*/
 
   if (verbose)
     fprintf(stderr, "# INFO: Image client ready, waiting for images...\n");
