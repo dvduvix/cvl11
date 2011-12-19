@@ -41,9 +41,9 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
   Vec3f g(x, y, z);
   Vec3f v = p - g;
 
-  float D = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+  float D = sqrt(v[0] * v[0] + v[1] * v[1]);
 
-  v = Vec3f(v[0] / D, v[1] / D, v[2] / D);
+  v = Vec3f(v[0] / D, v[1] / D, 0);
 
   if (D > keep) {
     v = v * (D - keep);
