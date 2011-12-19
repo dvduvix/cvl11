@@ -46,6 +46,8 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
 
   Vec3f P = g + v;
 
+  printf("Keep: X: %f, Y: %f, Z: %f \n", P[0], P[1], P[2]);
+
   return P;
 }
 
