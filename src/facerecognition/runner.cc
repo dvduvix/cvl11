@@ -254,20 +254,24 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
     if (ok) {
       //control->keepDistance(msg, client, p3d3, lcm, compid);
       printf("Some morron decided to let me fly... \n");
+
       float x, y, z;
       client->getGroundTruth(msg, x, y, z);
       printf("Location : x: %f y: %f z: %f\n", x, y, z);
 
       float er = 0.001;
+      Vec3f ap(0, 0, 0);
+      float rate = M_PI / 16;
+
 
       if (apt[0] == 100 || (abs(apt[0] - x) < er && abs(apt[1] - y) < er &&
                             abs(apt[2] - z) < er)) {
-        Vec3f ap(0, 0, 0);
-        float rate = M_PI / 16;
         apt = control->loopAround(msg, client, ap, rate, lcm, compid);
-
-        printf("Location : x: %f y: %f z: %f\n", apt[0], apt[1], apt[1]);
+        printf("Sending : x: %f y: %f z: %f\n", apt[0], apt[1], apt[1]);
       }
+
+      control->flyToPos(apt, 0, lcm, compid);
+
     }
 
 

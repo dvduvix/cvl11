@@ -76,7 +76,5 @@ Vec3f Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client
 
   rate = yaw + rate;
 
-  flyToPos(p, rate, lcm, compid);
-
   return p;
 }
