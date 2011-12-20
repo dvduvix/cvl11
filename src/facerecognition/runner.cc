@@ -39,7 +39,7 @@ int sysid         = 42;
 int compid        = 112;
 static GString* configFile = g_string_new("config.cfg");
 
-int countf, fps;
+int countf, fps, ld;
 struct timeval tv;
 string stereoCfg;
 Face *face;
@@ -48,6 +48,7 @@ Control *control;
 StereoProc stereo;
 Vec3f apt;
 float apt_yaw;
+double time_init;
 
 std::string fileBaseName("frame");
 std::string fileExt(".png");
@@ -198,6 +199,27 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       apt[1] = y;
       apt[2] = z_const;
       apt_yaw = yaw;
+
+      struct timeval tv;
+      gettimeofday(&tv, NULL);
+      time_init = tv.tv_sec;
+      ld = 0;
+    }
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    if (abs(tv.tv_sec - time_init)  < 10) {
+      if (ld == abs(tv.tv_sec - time_init)) {
+      } else {
+        ld = abs(tv.tv_sec - time_init);
+        printf("Get ready ... %f \n", 10 - abs(tv.tv_sec - time_init));
+      }
+
+      if (ok)
+        control->flyToPos(apt, apt_yaw, lcm, compid);
+
+      return;
     }
 
     foundFace = face->detectFace(imgL);
@@ -276,13 +298,10 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       apt[0] = x;
       apt[1] = y;
       apt[2] = z_const;
-     // apt_yaw = yaw;
+      //apt_yaw = yaw;
     } else {
-      //control->flyToPos(apt, apt_yaw, lcm, compid);
+      control->flyToPos(apt, apt_yaw, lcm, compid);
     }
-
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
 
     /*if (ok) {
       //control->keepDistance(msg, client, p3d3, lcm, compid);
