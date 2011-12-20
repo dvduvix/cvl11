@@ -23,6 +23,8 @@ int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 	pos.target_component  = 200;
 	pos.coordinate_frame = 1;
 
+	printf("Go to: X: %f, Y: %f, Z: %f \n", p[0], p[1], p[2]);
+
 	mavlink_msg_set_local_position_setpoint_encode(getSystemID(), compid, &msg,
 	                                               &pos);
 	sendMAVLinkMessage(lcm, &msg);
@@ -40,14 +42,13 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
 
   Vec3f g(x * 1000, y * 1000, z * 1000);
 
-//  printf("Face center: X: %f, Y: %f, Z: %f \n", p[0], p[1], p[2]);
-//  printf("Ground: X: %f, Y: %f, Z: %f \n", g[0], g[1], g[2]);
+  printf("Face center: X: %f, Y: %f, Z: %f \n", p[0], p[1], p[2]);
 
   Vec3f v = p - g;
 
   float D = sqrt(v[0] * v[0] + v[1] * v[1]);
 
-//  printf("Distance: %f \n", D);
+  printf("Distance: %f \n", D);
 
   v = Vec3f(v[0] / D, v[1] / D, 0);
 
@@ -58,8 +59,6 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
   }
 
   Vec3f P = g + v;
-
-//  printf("Keep: X: %f, Y: %f, Z: %f \n", P[0], P[1], P[2]);
 
   return P;
 }
