@@ -33,22 +33,9 @@ Vec3f World::get3DPoint(Vec2i p, Mat &depthImage, float focus)
 
 				float z_t = depthImage.at<float>(p[1] + i, p[0] + j);
 
-				if (z_t != 0) {
-					int s_t = v.size();
-
-					if (s_t == 0)
-						v.push_back(z_t);
-					else
-					for (int s = 0; s < s_t; ++s) {
-						if (z_t < v.at(s)) {
-							vector<float>::iterator it = v.begin();
-							it += s;
-							v.insert(it, z_t);
-						} else if (s == s_t - 1) {
-							v.push_back(z_t);
-						}
-					}
-				}
+				if (z_t != 0)
+  				v.push_back(z_t);
+				
 			}
 		}
 
@@ -56,7 +43,9 @@ Vec3f World::get3DPoint(Vec2i p, Mat &depthImage, float focus)
 			z = 0;
 			d++;
 		} else {
-			z = v.at(floor((v.size() - 1) / 2.));
+		  z = getMed(v);
+		  
+			//z = v.at(floor((v.size() - 1) / 2.));
 			break;
 		}
 	};
@@ -142,7 +131,6 @@ Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus)
 		}
 	}
 
-
 	cvSolve(matX, matZ, res, CV_SVD);
 
 	float A = cvmGet(res, 0, 0);
@@ -181,9 +169,10 @@ Vec3f World::globalPoint(const mavlink_message_t *msg, PxSHMImageClient *client,
 	float H1t[4][4] = {
 			{ca * cb,  ca * sb * sg - sa * cg,  ca * sb * cg + sa * sg,  x * 1000},
 			{sa * cb,  sa * sb * sg + ca * cg,  sa * sb * cg - ca * sg,  y * 1000},
-			{-sb, 	   cb * sg, 				cb * cg, 				 z * 1000},
-			{0, 	   0, 					    0, 					     1	     }
+			{-sb, 	   cb * sg, 				        cb * cg, 				         z * 1000},
+			{0, 	     0, 					            0, 					             1	     }
 	};
+
 
 	float H2t[4][4] = {
 			{0, 1, 0, 0},
@@ -196,30 +185,64 @@ Vec3f World::globalPoint(const mavlink_message_t *msg, PxSHMImageClient *client,
 	Mat H2(4, 4, CV_32FC1, H2t);
 
 	Mat H = H1 * H2.inv();
-	Mat iIntrensic;
-
-	invert(intresic, iIntrensic);
-
-	Vec3f pp;
-	pp[0] = (float)p[0];
-	pp[1] = (float)p[1];
-	pp[2] = (float)get3DPoint(p, depthImage, intresic.at<float>(0, 0))[2];
-
-	Mat toto = iIntrensic * cv::Mat(pp);
-
-	cv::Vec4f cameraPoint = cv::Vec4f(
-			toto.at<float>(0, 0),
-			toto.at<float>(1, 0),
-			toto.at<float>(2, 0) * 1000.0f,
-			1
-	);
+	
+	Vec3f ooo = get3DPoint(p, depthImage, intresic.at<float>(0, 0));
+	
+	cv::Vec4f cameraPoint = cv::Vec4f(ooo[0] * 1000.0f,
+	    			                        ooo[1] * 1000.0f,
+			                              ooo[2] * 1000.0f,
+  			                            1);
 
 	Mat X = H * cv::Mat(cameraPoint);
 
-	Vec3f fP = Vec<float, 3>(
-			X.at<float>(0, 0) / X.at<float>(3, 0),
-			X.at<float>(1, 0) / X.at<float>(3, 0),
-			X.at<float>(2, 0) / X.at<float>(3, 0));
-
+	Vec3f fP = Vec<float, 3>(X.at<float>(0, 0) / X.at<float>(3, 0),
+	                         X.at<float>(1, 0) / X.at<float>(3, 0),
+        			             X.at<float>(2, 0) / X.at<float>(3, 0));
+	
 	return fP;
+}
+
+void swap(vector<float>& t, int i , int j) {
+    float a = t[i];
+    t[i] = t[j];
+    t[j] = a;
+}
+
+int partition(vector<float>& t, int p, int r){
+    float x = t[r];
+    int i = p-1;
+    for(int j = p;j<=r-1;j++){
+
+        if(t[j]<=x){
+            i++;
+            swap(t,i,j);
+        }
+    }
+    swap(t,i+1,r);
+    return i+1;
+}
+
+int randomizedPartition(vector<float>& t, int p, int r){
+    int i = (rand()%(r-p+1))+p;
+    swap(t,r,i);
+    return partition(t,p,r);
+}
+
+float select(vector<float>& t,int p,int r,int i){
+    while(true){
+        if(p==r) return t[p];
+        int q = randomizedPartition(t,p,r);
+        int k = q-p+1;
+        if(i==k) return t[q];
+        else if(i<k)
+            r=q-1;
+        else{
+            p=q+1;
+            i-=k;
+        }
+    }
+}
+
+float World::getMed(vector<float>& t) {
+    return select(t,0,t.size()-1,(t.size()+1)/2);
 }

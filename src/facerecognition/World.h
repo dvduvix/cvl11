@@ -17,7 +17,7 @@ using namespace std;
 using namespace cv;
 
 class World {
-public:
+ public:
 	World();
 	virtual ~World();
 
@@ -27,6 +27,9 @@ public:
 	Vec3f normalFromArea(FaceProp prop, Mat &depthImage, float focus);
 	Vec3f globalPoint(const mavlink_message_t *msg, PxSHMImageClient *client,
 			Vec2f &p, Mat &intresic, Mat &depthImage);
+
+ private:
+  float getMed(vector<float> &t);
 };
 
 #endif /* WORLD_H_ */
