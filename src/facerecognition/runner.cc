@@ -222,10 +222,10 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       return;
     }
 
-    foundFace = face->detectFace(imgL);
+   stereo.process(imgL, imgR, imgRectified, imgDepth);
+   foundFace = face->detectFace(imgRectified);
 
     if (foundFace) {
-      stereo.process(imgL, imgR, imgRectified, imgDepth);
 
       if (agui) {
         cv::Mat *imgDepthCopy = new cv::Mat();
@@ -236,7 +236,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
         cv::imshow("Depth map", imgDepthColor);
       }
 
-      IplImage iImgL = imgL;
+      IplImage iImgL = imgRectified;
 
       cvLine(&iImgL, face->faceProp.p1, face->faceProp.p2,
              cvScalar(255, 0, 0, 1), 2);
@@ -256,12 +256,12 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       if (verbose)
         std::cerr << pp[0] << " " << pp[1] << " f " << pp[2] << "\n";
 
-//			Point2i p;
-//			p.x = face->faceProp.c[0] - 50 * normal[0];
-//			p.y = face->faceProp.c[1] - 50 * normal[1];
-//
-//			cvLine(&iImgL, cvPoint(face->faceProp.c[0], face->faceProp.c[1]),
-//					p, cvScalar(0, 0, 0, 1), 3);
+			Point2i p;
+			p.x = face->faceProp.c[0] - 50 * normal[0];
+			p.y = face->faceProp.c[1] - 50 * normal[1];
+
+			cvLine(&iImgL, cvPoint(face->faceProp.c[0], face->faceProp.c[1]),
+					p, cvScalar(0, 0, 0, 1), 3);
 
       Point2i pw, kw;
       pw.x = imgL.cols / 2. - imgL.cols / 4. * normal[0];
@@ -271,7 +271,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
         cvLine(&iImgL, cvPoint(imgL.cols / 2, pw.y), pw, cvScalar(255, 0, 0, 1),
                10);
 
-      measurement(0) = pw.x * (1 - abs(pw.x - gW.x) / imgL.cols);
+      measurement(0) = pw.x;// * (1 - abs(pw.x - gW.x) / imgL.cols);
       measurement(1) = pw.y;
 
       Mat estimated = KF.correct(measurement);
@@ -359,10 +359,10 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       if ((client->getCameraConfig() & PxSHM::CAMERA_FORWARD_LEFT)
           == PxSHM::CAMERA_FORWARD_LEFT) {
         cv::namedWindow("Left Image (Forward Camera)");
-        cv::imshow("Left Image (Forward Camera)", imgL);
+        cv::imshow("Left Image (Forward Camera)", imgRectified);
       } else {
         cv::namedWindow("Left Image (Downward Camera)");
-        cv::imshow("Left Image (Downward Camera)", imgL);
+        cv::imshow("Left Image (Downward Camera)", imgRectified);
       }
     }
   }

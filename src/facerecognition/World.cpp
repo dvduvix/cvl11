@@ -187,7 +187,7 @@ Vec3f World::globalPoint(const mavlink_message_t *msg, PxSHMImageClient *client,
 	Mat H = H1 * H2.inv();
 	
 	Vec3f ooo = get3DPoint(p, depthImage, intresic.at<float>(0, 0));
-	
+
 	cv::Vec4f cameraPoint = cv::Vec4f(ooo[0] * 1000.0f,
 	    			                        ooo[1] * 1000.0f,
 			                              ooo[2] * 1000.0f,
@@ -198,7 +198,7 @@ Vec3f World::globalPoint(const mavlink_message_t *msg, PxSHMImageClient *client,
 	Vec3f fP = Vec<float, 3>(X.at<float>(0, 0) / X.at<float>(3, 0),
 	                         X.at<float>(1, 0) / X.at<float>(3, 0),
         			             X.at<float>(2, 0) / X.at<float>(3, 0));
-	
+
 	return fP;
 }
 
