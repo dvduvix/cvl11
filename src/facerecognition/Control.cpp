@@ -23,7 +23,7 @@ int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 	pos.target_component  = 200;
 	pos.coordinate_frame = 1;
 
-	printf("Go to: X: %f, Y: %f, Z: %f \n", p[0], p[1], p[2]);
+	printf("Go to: X: %f, Y: %f, Z: %f \n", pos.x, pos.y, pos.z);
 
 	mavlink_msg_set_local_position_setpoint_encode(getSystemID(), compid, &msg,
 	                                               &pos);
@@ -34,7 +34,7 @@ int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 
 Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
                                       PxSHMImageClient *client, Vec3f p) {
-  float keep = 1100.0f;
+  float keep = 1500.0f;
 
   float x, y, z;
 
@@ -42,6 +42,8 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
 
   Vec3f g(x * 1000, y * 1000, z * 1000);
   Vec3f v;
+
+  //printf("Face center: X: %f, Y: %f, Z: %f \n", p[0] /1000.0f, p[1] /1000.0f, p[2] / 1000.0f);
 
   v[0] = p[0] - g[0];
   v[1] = p[1] - g[1];
@@ -64,18 +66,17 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
   }
 
   Vec3f P = g + v;
-
-  P[0] *= 0.001;
-  P[1] *= 0.001;
   P[2] = p[2];
-
-  v[0] = p[0] * 0.001 - P[0];
-  v[1] = p[1] * 0.001 - P[1];
-  v[2] = p[2] * 0.001 - P[2];
+  v[0] = p[0] - P[0];
+  v[1] = p[1] - P[1];
+  v[2] = p[2] - P[2];
 
   D = sqrt(v[0] * v[0] + v[1] * v[1]);
 
-  printf("Distance N: %f \n", D);
+   printf("Distance N: %f \n", D);
+
+  P[0] =P[0] / 1000.0f;
+  P[1] =P[1] / 1000.0f;
 
   return P;
 }

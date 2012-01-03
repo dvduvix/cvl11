@@ -182,7 +182,6 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
   Mat imgDepthColor;
 
   stereo.getImageInfo(intrinsicMat);
-  float focus = intrinsicMat.at<float>(0, 0);
 
   if (client->readStereoImage(msg, imgL, imgR)) {
     if (isInit) {
@@ -198,7 +197,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       apt[0] = x;
       apt[1] = y;
       apt[2] = z_const;
-      apt_yaw = yaw;
+      apt_yaw = M_PI / 2.0f;
 
       struct timeval tv;
       gettimeofday(&tv, NULL);
@@ -209,21 +208,21 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    if (abs(tv.tv_sec - time_init)  < 10) {
+    if (abs(tv.tv_sec - time_init)  < 10 && ok) {
       if (ld == abs(tv.tv_sec - time_init)) {
       } else {
         ld = abs(tv.tv_sec - time_init);
         printf("Get ready ... %f \n", 10 - abs(tv.tv_sec - time_init));
       }
 
-      if (ok)
-        control->flyToPos(apt, apt_yaw, lcm, compid);
+      control->flyToPos(apt, apt_yaw, lcm, compid);
 
       return;
     }
 
-   stereo.process(imgL, imgR, imgRectified, imgDepth);
-   foundFace = face->detectFace(imgRectified);
+    stereo.process(imgL, imgR, imgRectified, imgDepth);
+
+    foundFace = face->detectFace(imgRectified);
 
     if (foundFace) {
 
@@ -238,17 +237,21 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
       IplImage iImgL = imgRectified;
 
-      cvLine(&iImgL, face->faceProp.p1, face->faceProp.p2,
-             cvScalar(255, 0, 0, 1), 2);
-      cvLine(&iImgL, face->faceProp.p1, face->faceProp.p3,
-          cvScalar(255, 0, 0, 1));
-      cvLine(&iImgL, face->faceProp.p2, face->faceProp.p3,
-          cvScalar(255, 0, 0, 1), 2);
+      cvLine(&iImgL, Point2i(face->faceProp.p1), Point2i(face->faceProp.p2),
+             cvScalar(255, 0, 0, 1));
+      cvLine(&iImgL, Point2i(face->faceProp.p1), Point2i(face->faceProp.p3),
+             cvScalar(255, 0, 0, 1));
+      cvLine(&iImgL, Point2i(face->faceProp.p2), Point2i(face->faceProp.p3),
+             cvScalar(255, 0, 0, 1));
 
-      Vec3f p3d3 = world->get3DPoint(face->faceProp.p3, imgDepth, focus);
-      Vec3f normal = world->normalFrom3DPoints(
-          world->get3DPoint(face->faceProp.p1, imgDepth, focus),
-          world->get3DPoint(face->faceProp.p2, imgDepth, focus), p3d3);
+      Vec3f p3d1 = world->globalPoint(msg, client, face->faceProp.p1, intrinsicMat,
+                                      imgDepth);
+      Vec3f p3d2 = world->globalPoint(msg, client, face->faceProp.p2, intrinsicMat,
+                                      imgDepth);
+      Vec3f p3d3 = world->globalPoint(msg, client, face->faceProp.p3, intrinsicMat,
+                                      imgDepth);
+
+      Vec3f normal = world->normalFrom3DPoints(p3d1, p3d2, p3d3);
 
       Vec3f pp = world->globalPoint(msg, client, face->faceProp.c, intrinsicMat,
                                     imgDepth);
@@ -271,7 +274,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
         cvLine(&iImgL, cvPoint(imgL.cols / 2, pw.y), pw, cvScalar(255, 0, 0, 1),
                10);
 
-      measurement(0) = pw.x;// * (1 - abs(pw.x - gW.x) / imgL.cols);
+      measurement(0) = pw.x * (1 - abs(pw.x - gW.x) / imgL.cols);
       measurement(1) = pw.y;
 
       Mat estimated = KF.correct(measurement);
@@ -351,7 +354,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       if (fpsb)
         cout << "FPS: " << fps << endl;
 
-      putText(imgL, ss.str(), cvPoint(10, 20), FONT_HERSHEY_PLAIN, 1,
+      putText(imgRectified, ss.str(), cvPoint(10, 20), FONT_HERSHEY_PLAIN, 1,
           cvScalar(255, 0, 0, 1));
     }
 
@@ -526,7 +529,7 @@ int main(int argc, char* argv[]) {
   setIdentity(KF.measurementMatrix);
   setIdentity(KF.processNoiseCov, Scalar::all(1e-4));
   setIdentity(KF.measurementNoiseCov, Scalar::all(1e-1));
-  setIdentity(KF.errorCovPost, Scalar::all(.1));
+  setIdentity(KF.errorCovPost, Scalar::all(.5));
   ///////////////////////////////////////////////////////////////////////////
 
   clientHandler.imageClient = &client;

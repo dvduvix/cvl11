@@ -18,7 +18,7 @@ public:
 	FaceProp();
 	virtual ~FaceProp();
 
-	Point2i p1, p2, p3;
+	Vec2f p1, p2, p3;
 	Vec2f c;
 	Rect r;
 };

@@ -17,7 +17,6 @@ Face::~Face() {}
  */
 bool Face::detectFace(cv::Mat &frame) {
  	Mat dFrame;
-	int tr = 10;
 
 	cv::resize(frame, dFrame, Size(), 1. / factor, 1. / factor, INTER_AREA);
 
@@ -59,12 +58,12 @@ bool Face::detectFace(cv::Mat &frame) {
 
 	eyesCascade.detectMultiScale(frame(cFace), eyes, 1.05, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(15, 15));
 
-	Point p1, p2, p3;
+	Vec2i p1, p2, p3;
 
-	p1.x = 0.3 * face.width + face.x;
-	p2.x = 0.7 * face.width + face.x;
-	p1.y = face.height / 2.6 + face.y;
-	p2.y = p1.y;
+	p1[0] = 0.3 * face.width + face.x;
+	p2[0] = 0.7 * face.width + face.x;
+	p1[1] = face.height / 2.6 + face.y;
+	p2[1] = p1[1];
 
 	for (unsigned int i = 0; i < eyes.size(); ++i) {
 		if (i == 2)
@@ -73,11 +72,11 @@ bool Face::detectFace(cv::Mat &frame) {
 		Rect eye = eyes[i];
 
 		if (eye.x < faces[0].width / 2.) {
-			p1.x = face.x + eye.width / 2. + eye.x;
-			p1.y = face.y + eye.height / 2. + eye.y;
+			p1[0] = face.x + eye.width / 2. + eye.x;
+			p1[1] = face.y + eye.height / 2. + eye.y;
 		} else {
-			p2.x = face.x + eye.width / 2. + eye.x;
-			p2.y = face.y + eye.height / 2. + eye.y;
+			p2[0] = face.x + eye.width / 2. + eye.x;
+			p2[1] = face.y + eye.height / 2. + eye.y;
 		}
 	}
 
@@ -87,11 +86,11 @@ bool Face::detectFace(cv::Mat &frame) {
 	lipsCascade.detectMultiScale(frame(cFace), lips, 1.05, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(25, 15));
 
 	if (lips.size() == 1) {
-		p3.x = face.x + lips[0].width / 2. + lips[0].x;
-		p3.y = face.y + lips[0].height / 2. + lips[0].y + cFace.height;
+		p3[0] = face.x + lips[0].width / 2. + lips[0].x;
+		p3[1] = face.y + lips[0].height / 2. + lips[0].y + cFace.height;
 	} else {
-		p3.x = 0.5 * face.width + face.x;
-		p3.y = 0.78 * face.height + face.y;
+		p3[0] = 0.5 * face.width + face.x;
+		p3[1] = 0.78 * face.height + face.y;
 	}
 
 	Vec2f c;
@@ -103,32 +102,6 @@ bool Face::detectFace(cv::Mat &frame) {
 	iFace.y = 0.3 * face.height + face.y;
 	iFace.width = 0.4 * face.width;
 	iFace.height = 0.4 * face.height;
-
-/*	int dX = faceProp.p1.x + faceProp.p2.x + faceProp.p3.x - p1.x - p2.x - p3.x;
-	int dY = faceProp.p1.y + faceProp.p2.y + faceProp.p3.y - p1.y - p2.y - p3.y;
-
-	if (abs(abs(dX) - abs(dY)) > tr) {
-		if (abs(dX) > abs(dY)) {
-			if (dX > 0)
-				direction = FaceMotion::L;
-			else
-				direction = FaceMotion::R;
-		} else {
-			if (dY > 0)
-				direction = FaceMotion::U;
-			else
-				direction = FaceMotion::D;
-		}
-	} else {
-		if (dX > 0 && dY > 0)
-			direction = FaceMotion::UL;
-		else if (dX < 0 && dY < 0)
-			direction = FaceMotion::DR;
-		else if (dX > 0 && dY < 0)
-			direction = FaceMotion::DL;
-		else
-			direction = FaceMotion::UR;
-	}*/
 
 	faceProp.p1 = p1;
 	faceProp.p2 = p2;
