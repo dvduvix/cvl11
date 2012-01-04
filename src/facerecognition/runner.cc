@@ -292,6 +292,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
         client->getRollPitchYaw(msg, roll, pitch, yaw);
 
         float q_x, q_y;
+
         q_x = (x + 0.04 * cos(yaw)) / real_size_x * plot_size_x
             + plot_size_x / 2;
         q_y = (y + 0.04 * sin(yaw)) / real_size_y * plot_size_y
