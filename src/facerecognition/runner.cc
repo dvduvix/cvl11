@@ -257,8 +257,10 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       Vec3f normalW = world->normalFrom3DPoints(p3d1, p3d2, p3d3);
 
       if (ploting) {
-        int plot_size_x = 800;
-        int plot_size_y = 600;
+        int plot_size_x = 936;
+        int plot_size_y = 702;
+        float real_size_x = 4;
+        float real_size_y = 4;
 
         Mat plot = Mat::zeros(plot_size_y, plot_size_x, CV_8UC3);
 
@@ -270,17 +272,47 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
         Point2i plot_p1, plot_p2;
 
-        plot_p1.x = pp[0] / 1.5 * plot_size_x / 1000.0f;
-        plot_p1.y = pp[1] / 1.5 * plot_size_y / 1000.0f;
+        plot_p1.x = pp[0] / real_size_x * plot_size_x / 1000.0f
+                  + plot_size_x / 2;
+        plot_p1.y = pp[1] / real_size_y * plot_size_y / 1000.0f
+                  + plot_size_y / 2;
 
-        plot_p2.x = plot_p1.x - 27 * normalW[0];
-        plot_p2.y = plot_p1.y - 27 * normalW[1];
+        plot_p2.x = plot_p1.x - 25 * normalW[0];
+        plot_p2.y = plot_p1.y - 25 * normalW[1];
 
-       // line(plot, plot_p1, plot_p2, cvScalar(0, 0, 255));
-       // line(plot, plot_p1, plot_p1, cvScalar(0, 255, 255));
+        line(plot, plot_p1, plot_p2, cvScalar(0, 0, 128), 2);
 
         rectangle(plot, Point2i(plot_p1.x - 2, plot_p1.y - 2),
                   Point2i(plot_p1.x + 2, plot_p1.y + 2), cvScalar(128, 128, 0), 3);
+
+        float x, y, z;
+        client->getGroundTruth(msg, x, y, z);
+
+        float roll, pitch, yaw;
+        client->getRollPitchYaw(msg, roll, pitch, yaw);
+
+        float q_x, q_y;
+        q_x = (x + 0.04 * cos(yaw)) / real_size_x * plot_size_x
+            + plot_size_x / 2;
+        q_y = (y + 0.04 * sin(yaw)) / real_size_y * plot_size_y
+            + plot_size_y / 2;
+
+        x = x / real_size_x * plot_size_x + plot_size_x / 2;
+        y = y / real_size_y * plot_size_y + plot_size_y / 2;
+
+        rectangle(plot, Point2i(x - 2, y - 2), Point2i(x + 2, y + 2),
+                  cvScalar(0, 128, 128), 3);
+
+        rectangle(plot, Point2i(q_x - 1, q_y - 1), Point2i(q_x + 1, q_y + 1),
+                  cvScalar(0, 128, 128), 3);
+
+        putText(plot, "Head", plot_p1, FONT_HERSHEY_PLAIN, 1,
+                cvScalar(255, 255, 255));
+        putText(plot, "Quad", Point2i(x, y), FONT_HERSHEY_PLAIN, 1,
+                cvScalar(255, 255, 255));
+        putText(plot, "iron curtain",
+                Point2i(plot_size_x / 2 - 37, plot_size_y - 9),
+                FONT_HERSHEY_PLAIN, 1, cvScalar(0, 0, 255));
 
         namedWindow("Plot");
         imshow("Plot", plot);
