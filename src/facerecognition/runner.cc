@@ -23,6 +23,7 @@
 #include <sys/time.h>
 #include <time.h>
 
+bool ploting      = false;
 bool verbose      = false;
 bool gui          = false;
 bool agui         = false;
@@ -250,31 +251,58 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
                                       imgDepth);
       Vec3f p3d3 = world->globalPoint(msg, client, face->faceProp.p3, intrinsicMat,
                                       imgDepth);
-
-      Vec3f normal = world->normalFrom3DPoints(p3d1, p3d2, p3d3);
-
       Vec3f pp = world->globalPoint(msg, client, face->faceProp.c, intrinsicMat,
                                     imgDepth);
 
-      if (verbose)
-        std::cerr << pp[0] << " " << pp[1] << " f " << pp[2] << "\n";
+      Vec3f normalW = world->normalFrom3DPoints(p3d1, p3d2, p3d3);
 
-			Point2i p;
-			p.x = face->faceProp.c[0] - 50 * normal[0];
-			p.y = face->faceProp.c[1] - 50 * normal[1];
+      if (ploting) {
+        int plot_size_x = 800;
+        int plot_size_y = 600;
 
-			cvLine(&iImgL, cvPoint(face->faceProp.c[0], face->faceProp.c[1]),
-					p, cvScalar(0, 0, 0, 1), 3);
+        Mat plot = Mat::zeros(plot_size_y, plot_size_x, CV_8UC3);
+
+        line(plot, cvPoint(plot_size_x / 2, 0),
+             cvPoint(plot_size_x / 2, plot_size_y), cvScalar(255, 0, 0));
+
+        line(plot, cvPoint(0, plot_size_y / 2),
+             cvPoint(plot_size_x, plot_size_y / 2), cvScalar(0, 255, 0));
+
+        Point2i plot_p1, plot_p2;
+
+        plot_p1.x = pp[0] / 1.5 * plot_size_x / 1000.0f;
+        plot_p1.y = pp[1] / 1.5 * plot_size_y / 1000.0f;
+
+        plot_p2.x = plot_p1.x - 27 * normalW[0];
+        plot_p2.y = plot_p1.y - 27 * normalW[1];
+
+       // line(plot, plot_p1, plot_p2, cvScalar(0, 0, 255));
+       // line(plot, plot_p1, plot_p1, cvScalar(0, 255, 255));
+
+        rectangle(plot, Point2i(plot_p1.x - 2, plot_p1.y - 2),
+                  Point2i(plot_p1.x + 2, plot_p1.y + 2), cvScalar(128, 128, 0), 3);
+
+        namedWindow("Plot");
+        imshow("Plot", plot);
+      }
+
+      Vec3f normalL = world->normalFrom3DPoints(
+          world->get3DPoint(face->faceProp.p1, imgDepth,
+                            intrinsicMat.at<float>(0, 0)),
+          world->get3DPoint(face->faceProp.p2, imgDepth,
+                            intrinsicMat.at<float>(0, 0)),
+          world->get3DPoint(face->faceProp.p3, imgDepth,
+                            intrinsicMat.at<float>(0, 0)));
 
       Point2i pw, kw;
-      pw.x = imgL.cols / 2. - imgL.cols / 4. * normal[0];
+      pw.x = imgL.cols / 2. - imgL.cols / 4. * normalL[0];
       pw.y = imgL.rows - 8;
 
       if (gui)
-        cvLine(&iImgL, cvPoint(imgL.cols / 2, pw.y), pw, cvScalar(255, 0, 0, 1),
-               10);
+        cvLine(&iImgL, cvPoint(imgL.cols / 2, pw.y), pw,
+               cvScalar(255, 0, 0, 1), 9);
 
-      measurement(0) = pw.x * (1 - abs(pw.x - gW.x) / imgL.cols);
+      measurement(0) = pw.x /* (1.5 - (float)abs(pw.x - gW.x) / (float)imgL.cols)*/;
       measurement(1) = pw.y;
 
       Mat estimated = KF.correct(measurement);
@@ -282,28 +310,39 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
       gW = kw = statePt;
 
-      if (gui)
-        cvLine(&iImgL, cvPoint(imgL.cols / 2, kw.y - 8), cvPoint(kw.x, kw.y - 8),
-               cvScalar(128, 0, 0, 1), 10);
+      if (gui) {
+        cvLine(&iImgL, cvPoint(imgL.cols / 2, imgL.rows - 16),
+               cvPoint(kw.x, imgL.rows - 16), cvScalar(128, 0, 0, 1), 9);
+
+        Point2i p;
+        p.x = face->faceProp.c[0] - 50 * normalL[0];
+        p.y = face->faceProp.c[1] - 50 * normalL[1];
+
+        cvLine(&iImgL, cvPoint(face->faceProp.c[0], face->faceProp.c[1]), p,
+               cvScalar(0, 0, 0, 1), 3);
+      }
 
       struct timeval tv;
       gettimeofday(&tv, NULL);
 
-      pp[2] = z_const;
-      control->keepDistance(msg, client, pp, apt_yaw, lcm, compid);
+      if (ok) {
+        pp[2] = z_const;
+        control->keepDistance(msg, client, pp, apt_yaw, lcm, compid);
 
-      float x, y, z;
-      client->getGroundTruth(msg, x, y, z);
+        float x, y, z;
+        client->getGroundTruth(msg, x, y, z);
 
-      float roll, pitch, yaw;
-      client->getRollPitchYaw(msg, roll, pitch, yaw);
+        float roll, pitch, yaw;
+        client->getRollPitchYaw(msg, roll, pitch, yaw);
 
-      apt[0] = x;
-      apt[1] = y;
-      apt[2] = z_const;
-      //apt_yaw = yaw;
+        apt[0] = x;
+        apt[1] = y;
+        apt[2] = z_const;
+        //apt_yaw = yaw;
+      }
     } else {
-      control->flyToPos(apt, apt_yaw, lcm, compid);
+      if (ok)
+        control->flyToPos(apt, apt_yaw, lcm, compid);
     }
 
     /*if (ok) {
@@ -370,7 +409,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
     }
   }
 
-  if (gui || agui) {
+  if (gui || agui || ploting) {
     int c = cv::waitKey(3);
 
     switch (static_cast<char>(c)) {
@@ -441,7 +480,9 @@ static GOptionEntry entries[] = {
         G_OPTION_ARG_NONE, &agui, "Show advanced windows",
             (agui) ? "true" : "false" }, { "fps", 'f', 0, G_OPTION_ARG_NONE,
         &fpsb, "Show advanced windows", (fpsb) ? "true" : "false" }, { "oktogo",
-        'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" },
+        'o', 0, G_OPTION_ARG_NONE, &ok, "Ok to go", (ok) ? "true" : "false" }, {
+        "plot", 'p', 0, G_OPTION_ARG_NONE, &ploting, "Plot top view.",
+            (ploting) ? "true" : "false" },
         //{ "config", 'f', 0, G_OPTION_ARG_STRING, configFile, "Filename of paramClient config file", "config/parameters_2pt.cfg"},
     { NULL }
 };
@@ -529,7 +570,7 @@ int main(int argc, char* argv[]) {
   setIdentity(KF.measurementMatrix);
   setIdentity(KF.processNoiseCov, Scalar::all(1e-4));
   setIdentity(KF.measurementNoiseCov, Scalar::all(1e-1));
-  setIdentity(KF.errorCovPost, Scalar::all(.5));
+  setIdentity(KF.errorCovPost, Scalar::all(1));
   ///////////////////////////////////////////////////////////////////////////
 
   clientHandler.imageClient = &client;
