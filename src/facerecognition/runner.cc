@@ -11,6 +11,7 @@
 #include "mavconn.h"
 #include "Face.h"
 #include "World.h"
+#include "WorldPlotter.h"
 #include "Control.h"
 #include "StereoProc.h"
 #include <opencv2/imgproc/imgproc.hpp>
@@ -45,6 +46,7 @@ struct timeval tv;
 string stereoCfg;
 Face *face;
 World *world;
+WorldPlotter *worldPlotter;
 Control *control;
 StereoProc stereo;
 Vec3f apt;
@@ -256,7 +258,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
       Vec3f normalW = world->normalFrom3DPoints(p3d1, p3d2, p3d3);
 
-      if (ploting) {
+      if (ploting) {/*
         int plot_size_x = 936;
         int plot_size_y = 702;
         float real_size_x = 4;
@@ -316,7 +318,16 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
                 FONT_HERSHEY_PLAIN, 1, cvScalar(0, 0, 255));
 
         namedWindow("Plot");
-        imshow("Plot", plot);
+        imshow("Plot", plot);*/
+        Point3f quad_position;
+        client->getGroundTruth(msg, quad_position.x, quad_position.y,
+                               quad_position.z);
+
+        Point3f quad_orientation;
+        client->getRollPitchYaw(msg, quad_orientation.x, quad_orientation.y,
+                                quad_orientation.z);
+
+        worldPlotter->plotTopView(Point3f(pp), Point3f(normalW), quad_position, quad_orientation);
       }
 
       Vec3f normalL = world->normalFrom3DPoints(
@@ -531,8 +542,9 @@ int main(int argc, char* argv[]) {
       printf("Unable to open conf file.");
       exit(0);
     }
-
-    face = new Face();
+    world        = new World();
+    worldPlotter = new WorldPlotter();
+    face         = new Face();
 
     face->faceCascadeName = "haarcascade_frontalface_alt.xml";
     face->eyesCascadeName = "haarcascade_eye_tree_eyeglasses.xml";

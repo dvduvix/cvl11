@@ -90,7 +90,7 @@ int Control::keepDistance(const mavlink_message_t *msg,
 }
 
 Vec3f Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client,
-                        Vec3f ap, float rate, lcm_t *lcm, int compid) {
+                          Vec3f ap, float rate, lcm_t *lcm, int compid) {
 
   float x, y, z;
   float roll, pitch, yaw;

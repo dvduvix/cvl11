@@ -15,6 +15,7 @@ PIXHAWK_EXECUTABLE(runner runner.cc
 				   FaceProp FaceProp.cpp
 				   StereoProc StereoProc.cc
 				   World World.cpp
+				   WorldPlotter WorldPlotter.cpp
 				   Control Control.cpp)
 
 PIXHAWK_LINK_LIBRARIES(runner
