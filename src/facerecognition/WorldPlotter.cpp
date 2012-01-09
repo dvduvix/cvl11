@@ -132,7 +132,7 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   coordinates.push_back(distance);
   labels.push_back("D.Distance");
   coordinates.push_back(new_yaw);
-  labels.push_back("O.Goal Yaw");
+  labels.push_back("P.Goal Yaw");
 
   plotCoordinates(plot, coordinates, labels);
 
@@ -142,12 +142,11 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
 
 void WorldPlotter::plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
                                    vector<string> &labels) {
-  int count     = coordinates.size();
   int precision = 2;
   int width     = 10;
-  String x = "x",
-         y = "y",
-         z = "z";
+  int count     = coordinates.size();
+
+  String x, y, z;
   String label;
 
   for(int i = 0; i < count; ++i) {
@@ -165,6 +164,10 @@ void WorldPlotter::plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
       x = "r";
       y = "p";
       z = "y";
+    } else {
+      x = "x";
+      y = "y";
+      z = "z";
     }
 
     putText(plot, sstr.str(), Point2i(10, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,

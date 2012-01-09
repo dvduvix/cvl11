@@ -136,12 +136,12 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
   destination[1] = objectPosition[1] - keep * normal[1] / normalization;
   destination[2] = fixed_z;
 
-  float D = sqrt((destination[0] - objectPosition[0]) *
+ /* float D = sqrt((destination[0] - objectPosition[0]) *
                  (destination[0] - objectPosition[0]) +
                  (destination[1] - objectPosition[1]) *
                  (destination[1] - objectPosition[1]));
 
-  //printf("New Distance: %f \n", D);
+  printf("New Distance: %f \n", D);*/
 
   flyToPos(destination, yaw, lcm, compid);
 
