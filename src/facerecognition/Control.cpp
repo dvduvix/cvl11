@@ -18,7 +18,7 @@ int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 	pos.x   = p[0];
 	pos.y   = p[1];
 	pos.z   = p[2];
-	pos.yaw = yaw;
+	pos.yaw = yaw * 180 / M_PI;
 	pos.target_system     = getSystemID();
 	pos.target_component  = 200;
 	pos.coordinate_frame = 1;

@@ -99,15 +99,22 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   putText(plot, "iron curtain", Point2i(plot_size_x / 2 - 37, plot_size_y - 9),
           FONT_HERSHEY_PLAIN, 1, Scalar(0, 0, 255));
 
+
+  Vec3f d = cv::Vec3f(objectPosition) - cv::Vec3f(quadPosition);
+  Point3f distance = cv::Point3f(sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]),
+                                 0, 0);
+
   cv::Vector<Point3f> coordinates;
   vector<string> labels;
 
   coordinates.push_back(objectPosition * 0.001);
-  labels.push_back("Object pos");
+  labels.push_back("P.Object pos.");
   coordinates.push_back(quadPosition);
-  labels.push_back("Quad pos");
+  labels.push_back("P.Quad pos.");
   coordinates.push_back(quadOrientation);
-  labels.push_back("Quad ori");
+  labels.push_back("O.Quad orient.");
+  coordinates.push_back(distance);
+  labels.push_back("D.Distance");
 
   plotCoordinates(plot, coordinates, labels);
 
@@ -117,44 +124,65 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
 
 void WorldPlotter::plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
                                    vector<string> &labels) {
-  int count = coordinates.size();
+  int count     = coordinates.size();
+  int precision = 2;
+  int width     = 10;
+  String x = "x",
+         y = "y",
+         z = "z";
+  String label;
 
   for(int i = 0; i < count; ++i) {
+    label = &labels.at(i)[2];
+
     stringstream sstr;
 
-    sstr << left << labels.at(i).c_str() << right;
+    sstr << left << label.c_str() << right;
+
+    if (labels.at(i)[0] == 'D') {
+      x = "D";
+      y = " ";
+      z = " ";
+    } else if (labels.at(i)[0] == 'O') {
+      x = "r";
+      y = "p";
+      z = "y";
+    }
 
     putText(plot, sstr.str(), Point2i(10, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,
             text_color);
 
     stringstream sstrx;
-    sstrx.precision(5);
+    sstrx.precision(precision);
     sstrx.setf(ios::fixed, ios::floatfield);
 
-    sstrx << "> x: ";
-    sstrx.width(10);
+    sstrx << "> " << x << ": ";
+    sstrx.width(width);
     sstrx << right << coordinates[i].x;
 
     putText(plot, sstrx.str(), Point2i(120, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,
             text_color);
 
+    if (labels.at(i)[0] == 'D')
+      continue;
+
     stringstream sstry;
-    sstry.precision(5);
+    sstry.precision(precision);
     sstry.setf(ios::fixed, ios::floatfield);
 
-    sstry << " y: ";
-    sstry.width(10);
+    sstry << " " << y << ": ";
+    sstry.width(width);
     sstry << right << coordinates[i].y;
 
     putText(plot, sstry.str(), Point2i(280, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,
             text_color);
 
     stringstream sstrz;
-    sstrz.precision(5);
+    sstrz.precision(precision);
     sstrz.setf(ios::fixed, ios::floatfield);
 
-    sstrz << " z: ";
-    sstrz.width(10);
+    sstrz << " " << z << ": ";
+    sstrz.width(width);
     sstrz << right << coordinates[i].z;
 
     putText(plot, sstrz.str(), Point2i(430, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,

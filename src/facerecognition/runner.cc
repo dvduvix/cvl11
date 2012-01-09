@@ -200,7 +200,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       apt[0] = x;
       apt[1] = y;
       apt[2] = z_const;
-      apt_yaw = M_PI / 2.0f;
+      apt_yaw = yaw;
 
       struct timeval tv;
       gettimeofday(&tv, NULL);
@@ -382,7 +382,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
         apt[0] = x;
         apt[1] = y;
         apt[2] = z_const;
-        //apt_yaw = yaw;
+        apt_yaw = yaw;
       }
     } else {
       if (ok)
