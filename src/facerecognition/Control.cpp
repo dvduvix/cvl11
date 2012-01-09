@@ -141,7 +141,7 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
                  (destination[1] - objectPosition[1]) *
                  (destination[1] - objectPosition[1]));
 
-  printf("New Distance: %f \n", D);
+  //printf("New Distance: %f \n", D);
 
   flyToPos(destination, yaw, lcm, compid);
 

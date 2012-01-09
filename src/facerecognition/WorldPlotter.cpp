@@ -112,6 +112,8 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   float golden_x = objectPosition.x + scale * objectNormal.x / normalization;
   float golden_y = objectPosition.y + scale * objectNormal.y / normalization;
 
+  //printf("%f   %f \n", golden_x, golden_y);
+
   golden_x = golden_x / real_size_x * plot_size_x + plot_size_x / 2;
   golden_y = golden_y / real_size_y * plot_size_y + plot_size_y / 2;
 
