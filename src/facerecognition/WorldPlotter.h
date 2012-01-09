@@ -38,11 +38,14 @@ class WorldPlotter {
   int normal_thickness;
   int object_size;
   int object_thickness;
+  int marker_size;
+  double font_scale;
 
  private:
   void plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
                        vector<string> &labels);
   void plotTrace(Mat &plot, vector<Point2i> &coordinates, Scalar color);
+  void plotAxes(cv::Mat &plot);
 
   vector<Point2i> quad_trace;
   vector<Point2i> object_trace;

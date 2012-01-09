@@ -17,6 +17,8 @@ WorldPlotter::WorldPlotter() {
   normal_thickness = 2;
   object_size      = 4;
   object_thickness = 3;
+  font_scale       = 0.7;
+  marker_size      = 5;
 }
 
 WorldPlotter::~WorldPlotter() {}
@@ -29,11 +31,7 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
 
   Mat plot = Mat::zeros(plot_size_y, plot_size_x, CV_8UC3);
 
-  line(plot, cvPoint(plot_size_x / 2, 0),
-       cvPoint(plot_size_x / 2, plot_size_y), x_color);
-
-  line(plot, cvPoint(0, plot_size_y / 2),
-       cvPoint(plot_size_x, plot_size_y / 2), y_color);
+  plotAxes(plot);
 
   // Plot Normal Vector
   Point2i object_normal_p1, object_normal_p2;
@@ -107,6 +105,18 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
 
   Point3f new_yaw = cv::Point3f(0, 0, atan2(objectPosition.y - quadPosition.y,
                                             objectPosition.x - quadPosition.x));
+
+  float normalization = sqrt(objectNormal.x * objectNormal.x +
+                             objectNormal.y * objectNormal.y);
+  float scale = -1.5;
+  float golden_x = objectPosition.x + scale * objectNormal.x / normalization;
+  float golden_y = objectPosition.y + scale * objectNormal.y / normalization;
+
+  golden_x = golden_x / real_size_x * plot_size_x + plot_size_x / 2;
+  golden_y = golden_y / real_size_y * plot_size_y + plot_size_y / 2;
+
+  cv::Point2i goldenPoint = cv::Point2i(golden_x, golden_y);
+  cv::circle(plot, goldenPoint, 2, Scalar(0, 0, 255), 2);
 
   cv::Vector<Point3f> coordinates;
   vector<string> labels;
@@ -201,5 +211,44 @@ void WorldPlotter::plotTrace(Mat &plot, vector<Point2i> &coordinates,
                              Scalar color) {
   for (unsigned int i = 0; i < coordinates.size() - 1; ++i) {
     line(plot, coordinates.at(i), coordinates.at(i + 1), color);
+  }
+}
+
+
+void WorldPlotter::plotAxes(cv::Mat &plot) {
+  int marker_x,
+      marker_y;
+
+  line(plot, cvPoint(plot_size_x / 2, 0),
+       cvPoint(plot_size_x / 2, plot_size_y), x_color);
+  line(plot, cvPoint(0, plot_size_y / 2),
+       cvPoint(plot_size_x, plot_size_y / 2), y_color);
+
+  for(int i = -real_size_x / 2; i < real_size_x / 2; ++i) {
+    marker_x = i / real_size_x * plot_size_x + plot_size_x / 2;
+    marker_y = plot_size_y / 2;
+
+    line(plot, Point(marker_x, marker_y - marker_size),
+         Point(marker_x, marker_y + marker_size), x_color);
+
+    stringstream sstr;
+    sstr << i;
+
+    putText(plot, sstr.str(), Point2i(marker_x, marker_y - marker_size * 1.5),
+            FONT_HERSHEY_PLAIN, font_scale, x_color);
+  }
+
+  for(int i = -real_size_y / 2; i < real_size_y / 2; ++i) {
+    marker_y = i / real_size_y * plot_size_y + plot_size_y / 2;
+    marker_x = plot_size_x / 2;
+
+    line(plot, Point(marker_x, marker_y - marker_size),
+         Point(marker_x, marker_y + marker_size), y_color);
+
+    stringstream sstr;
+    sstr << i;
+
+    putText(plot, sstr.str(), Point2i(marker_x + marker_size * 1.5, marker_y),
+            FONT_HERSHEY_PLAIN, font_scale, y_color);
   }
 }

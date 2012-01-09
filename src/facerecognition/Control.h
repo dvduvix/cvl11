@@ -27,6 +27,9 @@ class Control {
 	                 Vec3f p, float yaw, lcm_t *lcm, int compid);
 	Vec3f loopAround(const mavlink_message_t *msg, PxSHMImageClient *client,
 	                 Vec3f ap, float rate, lcm_t *lcm, int compid);
+	int trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
+                Vec3f objectPosition, Vec3f normal, float fixed_z, lcm_t *lcm,
+                int compid);
 };
 
 #endif /* CONTROL_H_ */
