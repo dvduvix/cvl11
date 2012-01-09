@@ -99,15 +99,19 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   putText(plot, "iron curtain", Point2i(plot_size_x / 2 - 37, plot_size_y - 9),
           FONT_HERSHEY_PLAIN, 1, Scalar(0, 0, 255));
 
+  objectPosition *= 0.001;
 
   Vec3f d = cv::Vec3f(objectPosition) - cv::Vec3f(quadPosition);
   Point3f distance = cv::Point3f(sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]),
                                  0, 0);
 
+  Point3f new_yaw = cv::Point3f(0, 0, atan2(objectPosition.y - quadPosition.y,
+                                            objectPosition.x - quadPosition.x));
+
   cv::Vector<Point3f> coordinates;
   vector<string> labels;
 
-  coordinates.push_back(objectPosition * 0.001);
+  coordinates.push_back(objectPosition);
   labels.push_back("P.Object pos.");
   coordinates.push_back(quadPosition);
   labels.push_back("P.Quad pos.");
@@ -115,6 +119,8 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   labels.push_back("O.Quad orient.");
   coordinates.push_back(distance);
   labels.push_back("D.Distance");
+  coordinates.push_back(new_yaw);
+  labels.push_back("O.Goal Yaw");
 
   plotCoordinates(plot, coordinates, labels);
 
