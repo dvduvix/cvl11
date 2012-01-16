@@ -134,7 +134,7 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   coordinates.push_back(new_yaw);
   labels.push_back("P.Goal Yaw");
 
-  plotCoordinates(0, coordinates, labels);
+  plotCoordinates(NULL, coordinates, labels);
 
   namedWindow("Top View Plot");
   imshow("Top View Plot", plot);
@@ -146,7 +146,7 @@ void WorldPlotter::plotCoordinates(Mat *plot, Vector<Point3f> &coordinates,
   Mat img;
   bool toPlot = false;
 
-  if (plot == 0) {
+  if (plot == NULL) {
     toPlot = true;
     img = Mat::zeros(count * 15 + 10, plot_size_x, CV_8UC3);
     plot = &img;
