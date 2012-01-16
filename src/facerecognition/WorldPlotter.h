@@ -42,7 +42,7 @@ class WorldPlotter {
   double font_scale;
 
  private:
-  void plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
+  void plotCoordinates(Mat *plot, Vector<Point3f> &coordinates,
                        vector<string> &labels);
   void plotTrace(Mat &plot, vector<Point2i> &coordinates, Scalar color);
   void plotAxes(cv::Mat &plot);

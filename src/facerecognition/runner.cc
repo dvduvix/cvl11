@@ -312,6 +312,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       if (ok) {
         pp[2] = z_const;
         control->trackFace(msg, client, pp * 0.001, normalW, z_const, lcm, compid);
+
         //control->keepDistance(msg, client, pp, apt_yaw, lcm, compid);
 
         float x, y, z;

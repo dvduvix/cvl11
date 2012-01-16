@@ -134,17 +134,26 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   coordinates.push_back(new_yaw);
   labels.push_back("P.Goal Yaw");
 
-  plotCoordinates(plot, coordinates, labels);
+  plotCoordinates(0, coordinates, labels);
 
   namedWindow("Top View Plot");
   imshow("Top View Plot", plot);
 }
 
-void WorldPlotter::plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
+void WorldPlotter::plotCoordinates(Mat *plot, Vector<Point3f> &coordinates,
                                    vector<string> &labels) {
+  int count = coordinates.size();
+  Mat img;
+  bool toPlot = false;
+
+  if (plot == 0) {
+    toPlot = true;
+    img = Mat::zeros(count * 15 + 10, plot_size_x, CV_8UC3);
+    plot = &img;
+  }
+
   int precision = 2;
   int width     = 10;
-  int count     = coordinates.size();
 
   String x, y, z;
   String label;
@@ -154,23 +163,28 @@ void WorldPlotter::plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
 
     stringstream sstr;
 
+    float step;
+
     sstr << left << label.c_str() << right;
 
     if (labels.at(i)[0] == 'D') {
       x = "D";
       y = " ";
       z = " ";
+      step = (float)(plot_size_x - 120) / 1.0f;
     } else if (labels.at(i)[0] == 'O') {
       x = "r";
       y = "p";
       z = "y";
+      step = (float)(plot_size_x - 120) / 3.0f;
     } else {
       x = "x";
       y = "y";
       z = "z";
+      step = (float)(plot_size_x - 120) / 3.0f;
     }
 
-    putText(plot, sstr.str(), Point2i(10, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,
+    putText(*plot, sstr.str(), Point2i(10, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,
             text_color);
 
     stringstream sstrx;
@@ -181,8 +195,8 @@ void WorldPlotter::plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
     sstrx.width(width);
     sstrx << right << coordinates[i].x;
 
-    putText(plot, sstrx.str(), Point2i(120, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,
-            text_color);
+    putText(*plot, sstrx.str(), Point2i(120, 15 * (i + 1)),
+            FONT_HERSHEY_PLAIN, 1, text_color);
 
     if (labels.at(i)[0] == 'D')
       continue;
@@ -195,8 +209,8 @@ void WorldPlotter::plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
     sstry.width(width);
     sstry << right << coordinates[i].y;
 
-    putText(plot, sstry.str(), Point2i(280, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,
-            text_color);
+    putText(*plot, sstry.str(), Point2i(120 + step, 15 * (i + 1)),
+            FONT_HERSHEY_PLAIN, 1, text_color);
 
     stringstream sstrz;
     sstrz.precision(precision);
@@ -206,8 +220,13 @@ void WorldPlotter::plotCoordinates(Mat &plot, Vector<Point3f> &coordinates,
     sstrz.width(width);
     sstrz << right << coordinates[i].z;
 
-    putText(plot, sstrz.str(), Point2i(430, 15 * (i + 1)), FONT_HERSHEY_PLAIN, 1,
-            text_color);
+    putText(*plot, sstrz.str(), Point2i(120 + 2 * step, 15 * (i + 1)),
+            FONT_HERSHEY_PLAIN, 1, text_color);
+  }
+
+  if (toPlot) {
+    namedWindow("Coordinates");
+    imshow("Coordinates", *plot);
   }
 }
 
