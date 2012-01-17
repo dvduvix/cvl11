@@ -7,7 +7,11 @@
 
 #include "Control.h"
 
-Control::Control() { }
+Control::Control() {
+  lastPosition[0] = FLAG;
+  lastPosition[1] = FLAG;
+  lastPosition[2] = FLAG;
+}
 
 Control::~Control() { }
 
@@ -143,7 +147,22 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
 
   printf("New Distance: %f \n", D);*/
 
-  flyToPos(destination, yaw, lcm, compid);
+  if (validatePosition(destination))
+    flyToPos(destination, yaw, lcm, compid);
 
   return 0;
+}
+
+bool Control::validatePosition(Vec3f destination) {
+  float difference = 0.5f;
+
+  if(lastPosition[0] != FLAG && lastPosition[1] != FLAG) {
+    if (sqrt(pow(lastPosition[0] - destination[0], 2.0f) +
+             pow(lastPosition[1] - destination[1], 2.0f)) < difference)
+      return false;
+  } else {
+    lastPosition = destination;
+  }
+
+  return true;
 }

@@ -8,6 +8,8 @@
 #ifndef CONTROL_H_
 #define CONTROL_H_
 
+#define FLAG 9999
+
 #include <opencv2/imgproc/imgproc.hpp>
 #include "mavconn.h"
 #include <interface/shared_mem/PxSHMImageClient.h>
@@ -30,6 +32,11 @@ class Control {
 	int trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
                 Vec3f objectPosition, Vec3f normal, float fixed_z, lcm_t *lcm,
                 int compid);
+
+ private:
+	bool validatePosition(Vec3f destination);
+
+	Vec3f lastPosition;
 };
 
 #endif /* CONTROL_H_ */
