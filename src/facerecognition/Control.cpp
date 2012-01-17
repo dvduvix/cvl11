@@ -120,19 +120,10 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
                        lcm_t *lcm, int compid) {
   float keep = 1.5f;
 
-  Point3f quadPosition;
-
-  client->getGroundTruth(msg, quadPosition.x, quadPosition.y, quadPosition.z);
-
-  Vec3f d = objectPosition - Vec3f(quadPosition);
-
-  Point3f distance = Point3f(sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]),
-                             0, 0);
-
-  float yaw = atan2(objectPosition[1] - quadPosition.y,
-                    objectPosition[0] - quadPosition.x);
-
   float normalization = sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
+
+  float yaw = M_PI + atan2(normal[1] / normalization,
+                           normal[0] / normalization);
 
   Vec3f destination;
 
