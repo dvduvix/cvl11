@@ -122,8 +122,7 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
 
   float normalization = sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
 
-  float yaw = M_PI + atan2(normal[1] / normalization,
-                           normal[0] / normalization);
+  float yaw = atan2(-normal[1] / normalization, -normal[0] / normalization);
 
   Vec3f destination;
 
