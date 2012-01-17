@@ -310,7 +310,8 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       gettimeofday(&tv, NULL);
 
       if (ok) {
-        control->trackFace(msg, client, pp * 0.001, normalW, z_const, lcm, compid);
+        control->trackFace(msg, client, pp * 0.001, normalW, z_const, lcm,
+                           compid);
 
         //control->keepDistance(msg, client, pp, apt_yaw, lcm, compid);
 
