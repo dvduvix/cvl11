@@ -76,8 +76,7 @@ CvMat *World::constructRotationMatrix(float roll, float pitch, float yaw)
 	return rotMat;
 }
 
-Vec3f World::normalFrom3DPoints(Vec3f s1, Vec3f s2, Vec3f s3)
-{
+Vec3f World::normalFrom3DPoints(Vec3f s1, Vec3f s2, Vec3f s3) {
 	Vec3f a, b, normal;
 
 	a[0] = s1[0] - s3[0];
@@ -101,8 +100,7 @@ Vec3f World::normalFrom3DPoints(Vec3f s1, Vec3f s2, Vec3f s3)
 	return normal;
 }
 
-Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus)
-{
+Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus) {
 	Vec3f normal;
 	Rect area = prop.r;
 	int f = 1,
@@ -208,7 +206,7 @@ void swap(vector<float>& t, int i , int j) {
     t[j] = a;
 }
 
-int partition(vector<float>& t, int p, int r){
+int partition(vector<float>& t, int p, int r) {
     float x = t[r];
     int i = p-1;
     for(int j = p;j<=r-1;j++){
@@ -222,13 +220,13 @@ int partition(vector<float>& t, int p, int r){
     return i+1;
 }
 
-int randomizedPartition(vector<float>& t, int p, int r){
+int randomizedPartition(vector<float>& t, int p, int r) {
     int i = (rand()%(r-p+1))+p;
     swap(t,r,i);
     return partition(t,p,r);
 }
 
-float select(vector<float>& t,int p,int r,int i){
+float select(vector<float>& t,int p,int r,int i) {
     while(true){
         if(p==r) return t[p];
         int q = randomizedPartition(t,p,r);

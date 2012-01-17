@@ -247,12 +247,12 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
       cvLine(&iImgL, Point2i(face->faceProp.p2), Point2i(face->faceProp.p3),
              cvScalar(255, 0, 0, 1));
 
-      Vec3f p3d1 = world->globalPoint(msg, client, face->faceProp.p1, intrinsicMat,
-                                      imgDepth);
-      Vec3f p3d2 = world->globalPoint(msg, client, face->faceProp.p2, intrinsicMat,
-                                      imgDepth);
-      Vec3f p3d3 = world->globalPoint(msg, client, face->faceProp.p3, intrinsicMat,
-                                      imgDepth);
+      Vec3f p3d1 = world->globalPoint(msg, client, face->faceProp.p1,
+                                      intrinsicMat, imgDepth);
+      Vec3f p3d2 = world->globalPoint(msg, client, face->faceProp.p2,
+                                      intrinsicMat, imgDepth);
+      Vec3f p3d3 = world->globalPoint(msg, client, face->faceProp.p3,
+                                      intrinsicMat, imgDepth);
       Vec3f pp = world->globalPoint(msg, client, face->faceProp.c, intrinsicMat,
                                     imgDepth);
 
@@ -267,7 +267,8 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
         client->getRollPitchYaw(msg, quad_orientation.x, quad_orientation.y,
                                 quad_orientation.z);
 
-        worldPlotter->plotTopView(Point3f(pp), Point3f(normalW), quad_position, quad_orientation);
+        worldPlotter->plotTopView(Point3f(pp), Point3f(normalW), quad_position,
+                                  quad_orientation);
       }
 
       Vec3f normalL = world->normalFrom3DPoints(
