@@ -118,24 +118,17 @@ Vec3f Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client
 int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
                        Vec3f objectPosition, Vec3f normal, float fixed_z,
                        lcm_t *lcm, int compid) {
-  float keep = 1.5f;
+  float keep = 1.1f;
 
   float normalization = sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
 
-  float yaw = atan2(-normal[1] / normalization, -normal[0] / normalization);
+  float yaw = arcTan(-normal[0], -normal[1]);
 
   Vec3f destination;
 
   destination[0] = objectPosition[0] - keep * normal[0] / normalization;
   destination[1] = objectPosition[1] - keep * normal[1] / normalization;
   destination[2] = fixed_z;
-
- /* float D = sqrt((destination[0] - objectPosition[0]) *
-                 (destination[0] - objectPosition[0]) +
-                 (destination[1] - objectPosition[1]) *
-                 (destination[1] - objectPosition[1]));
-
-  printf("New Distance: %f \n", D);*/
 
   if (validatePosition(destination))
     flyToPos(destination, yaw, lcm, compid);
@@ -155,4 +148,29 @@ bool Control::validatePosition(Vec3f destination) {
   }
 
   return true;
+}
+
+float Control::arcTan(float x, float y) {
+  float angle;
+  float ax = abs(x);
+  float ay = abs(y);
+
+  if (x > 0 && y > 0)
+    angle = atan(ay / ax);
+  else if (x < 0 && y > 0)
+    angle = M_PI_2 + atan(ax / ay);
+  else if (x < 0 && y < 0)
+    angle = -M_PI_2 - atan(ax / ay);
+  else if (x > 0 && y < 0)
+    angle = -atan(ay / ax);
+  else if (x == 0)
+    angle = (y > 0) ? M_PI_2 : -M_PI_2;
+  else if (y == 0)
+    angle = (x > 0) ? 0 : M_PI;
+
+
+  if (x == 0 && y == 0)
+    angle = 0;
+
+  return angle / M_PI * 180;
 }

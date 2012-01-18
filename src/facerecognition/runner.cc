@@ -488,6 +488,7 @@ int main(int argc, char* argv[]) {
     world        = new World();
     worldPlotter = new WorldPlotter();
     face         = new Face();
+    control      = new Control();
 
     face->faceCascadeName = "haarcascade_frontalface_alt.xml";
     face->eyesCascadeName = "haarcascade_eye_tree_eyeglasses.xml";

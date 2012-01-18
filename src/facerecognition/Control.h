@@ -35,6 +35,7 @@ class Control {
 
  private:
 	bool validatePosition(Vec3f destination);
+  float arcTan(float x, float y);
 
 	Vec3f lastPosition;
 };
