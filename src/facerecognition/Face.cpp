@@ -24,7 +24,8 @@ bool Face::detectFace(cv::Mat &frame) {
 
 	Mat imgROI = dFrame(ROI);
 
-	faceCascade.detectMultiScale(imgROI, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(30, 30));
+  faceCascade.detectMultiScale(imgROI, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE,
+                               Size(30, 30));
 
 	if (faces.size() == 0)
 		return false;
@@ -56,7 +57,8 @@ bool Face::detectFace(cv::Mat &frame) {
 	Rect cFace = face;
 	cFace.height /= 2.;
 
-	eyesCascade.detectMultiScale(frame(cFace), eyes, 1.05, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(15, 15));
+  eyesCascade.detectMultiScale(frame(cFace), eyes, 1.05, 2,
+                               0 | CV_HAAR_SCALE_IMAGE, Size(15, 15));
 
 	Vec2i p1, p2, p3;
 
@@ -83,7 +85,8 @@ bool Face::detectFace(cv::Mat &frame) {
 	std::vector<Rect> lips;
 	cFace.y += cFace.height;
 
-	lipsCascade.detectMultiScale(frame(cFace), lips, 1.05, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(25, 15));
+  lipsCascade.detectMultiScale(frame(cFace), lips, 1.05, 2,
+                               0 | CV_HAAR_SCALE_IMAGE, Size(25, 15));
 
 	if (lips.size() == 1) {
 		p3[0] = face.x + lips[0].width / 2. + lips[0].x;

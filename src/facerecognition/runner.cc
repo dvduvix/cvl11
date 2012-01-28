@@ -508,7 +508,8 @@ int main(int argc, char* argv[]) {
 
   g_option_context_free(context);
 
-  printf("Verbose : %d, Gui : %d, AGui : % d, Ok : %d \n", verbose, gui, agui, ok);
+  printf("Verbose : %d, Gui : %d, AGui : % d, Ok : %d \n", verbose, gui, agui,
+         ok);
 
   struct united clientHandler;
   lcm_t* lcm = lcm_create("udpm://");

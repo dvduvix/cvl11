@@ -26,7 +26,7 @@ class World {
 	Vec3f normalFrom3DPoints(Vec3f s1, Vec3f s2, Vec3f s3);
 	Vec3f normalFromArea(FaceProp prop, Mat &depthImage, float focus);
 	Vec3f globalPoint(const mavlink_message_t *msg, PxSHMImageClient *client,
-			Vec2f &p, Mat &intresic, Mat &depthImage);
+                    Vec2f &p, Mat &intresic, Mat &depthImage);
 
  private:
   float getMed(vector<float> &t);
