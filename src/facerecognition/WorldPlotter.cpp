@@ -4,8 +4,8 @@ WorldPlotter::WorldPlotter() {
   plot_size_x = 800;
   plot_size_y = 600;
 
-  real_size_x = 4;
-  real_size_y = 4;
+  real_size_x = 8;
+  real_size_y = 6;
 
   x_color      = Scalar(128, 128, 128);
   y_color      = Scalar(128, 128, 128);

@@ -142,12 +142,12 @@ bool Control::validatePosition(Vec3f destination) {
   if(lastPosition[0] != FLAG && lastPosition[1] != FLAG) {
     if (sqrt(pow(lastPosition[0] - destination[0], 2.0f) +
              pow(lastPosition[1] - destination[1], 2.0f)) < difference)
-      return false;
+      return true;
   } else {
     lastPosition = destination;
   }
 
-  return true;
+  return false;
 }
 
 float Control::arcTan(float x, float y) {
