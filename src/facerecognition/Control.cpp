@@ -189,5 +189,5 @@ float Control::arcTan(float x, float y) {
   if (x == 0 && y == 0)
     angle = 0;
 
-  return angle / M_PI * 180;
+  return angle;
 }
