@@ -46,6 +46,7 @@ class WorldPlotter {
                        vector<string> &labels);
   void plotTrace(Mat &plot, vector<Point2i> &coordinates, Scalar color);
   void plotAxes(cv::Mat &plot);
+  float arcTan(float x, float y);
 
   vector<Point2i> quad_trace;
   vector<Point2i> object_trace;

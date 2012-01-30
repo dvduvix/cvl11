@@ -276,3 +276,28 @@ void WorldPlotter::plotAxes(cv::Mat &plot) {
             FONT_HERSHEY_PLAIN, font_scale, y_color);
   }
 }
+
+float WorldPlotter::arcTan(float x, float y) {
+  float angle;
+  float ax = abs(x);
+  float ay = abs(y);
+
+  if (x > 0 && y > 0)
+    angle = atan(ay / ax);
+  else if (x < 0 && y > 0)
+    angle = M_PI_2 + atan(ax / ay);
+  else if (x < 0 && y < 0)
+    angle = -M_PI_2 - atan(ax / ay);
+  else if (x > 0 && y < 0)
+    angle = -atan(ay / ax);
+  else if (x == 0)
+    angle = (y > 0) ? M_PI_2 : -M_PI_2;
+  else if (y == 0)
+    angle = (x > 0) ? 0 : M_PI;
+
+
+  if (x == 0 && y == 0)
+    angle = 0;
+
+  return angle / M_PI * 180;
+}
