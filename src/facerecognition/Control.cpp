@@ -131,7 +131,7 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
   destination[1] = objectPosition[1] - keep * normal[1] / normalization;
   destination[2] = fixed_z;
 
-  std::cout << "Normal: " << Mat(normal) << std::endl;
+ // std::cout << "Normal: " << Mat(normal) << std::endl;
 
   if (validatePosition(destination, yaw, quad_point, objectPosition) &&
       validateNormal(normal))
