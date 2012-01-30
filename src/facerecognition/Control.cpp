@@ -15,6 +15,16 @@ Control::Control() {
 
 Control::~Control() { }
 
+/**
+  * Sends a MAVLink Message with position and a yaw.
+  *
+  * @param p Position
+  * @param yaw Yaw
+  * @param lcm lcm_t *
+  * @param compid int
+  *
+  * @return 0
+  */
 int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 	mavlink_message_t msg;
 	mavlink_set_local_position_setpoint_t pos;
@@ -37,6 +47,17 @@ int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 	return 0;
 }
 
+/**
+  * Determines the position of the setpoint to fly the quad to a constant
+  * distance from the face
+  *
+  * @param msg const mavlink_message_t *
+  * @param yaw Yaw
+  * @param client PxSHMImageClient *
+  * @param p The position of the face in meters
+  *
+  * @return P The new setpoint
+  */
 Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
                                       PxSHMImageClient *client, Vec3f p) {
   float keep = 1500.0f;
@@ -86,6 +107,18 @@ Vec3f Control::determinePosByDistance(const mavlink_message_t *msg,
   return P;
 }
 
+/**
+  * Keeps the helicopter at a constant distance from the face
+  *
+  * @param msg const mavlink_message_t *
+  * @param client PxSHMImageClient *
+  * @param p The position of the face in meters
+  * @param yaw The yaw to send
+  * @param lcm lam_t *
+  * @param compid int
+  *
+  * @return 0
+  */
 int Control::keepDistance(const mavlink_message_t *msg,
                           PxSHMImageClient *client, Vec3f p, float yaw,
                           lcm_t *lcm, int compid) {
@@ -94,6 +127,18 @@ int Control::keepDistance(const mavlink_message_t *msg,
   return 0;
 }
 
+/**
+  * Loops the quad around one fixed point
+  *
+  * @param msg const mavlink_message_t *
+  * @param client PxSHMImageClient *
+  * @param ap The position of the face in meters
+  * @param rate At which rate should the quad loop
+  * @param lcm lam_t *
+  * @param compid int
+  *
+  * @return p The new setpoint
+  */
 Vec3f Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client,
                           Vec3f ap, float rate, lcm_t *lcm, int compid) {
 
@@ -116,6 +161,22 @@ Vec3f Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client
   return p;
 }
 
+/**
+  * Tracks the face. Keeps a fixed distance from the face and makes the quad to
+  * face the face. Before sending the message it validates the postion, the
+  * normal and the yaw
+  *
+  * @param msg const mavlink_message_t *
+  * @param client PxSHMImageClient *
+  * @param objectPosition The position of the face in meters
+  * @param normal Normal of the face in meters
+  * @param quad_point Location of the quad in meters
+  * @param fixed_z A fixed z-coordinate of the set point
+  * @param lcm lam_t *
+  * @param compid int
+  *
+  * @return 0
+  */
 int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
                        Vec3f objectPosition, Vec3f normal, Vec3f quad_point,
                        float fixed_z, lcm_t *lcm, int compid) {
@@ -140,6 +201,17 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
   return 0;
 }
 
+/**
+  * Validates the new set point by checking if the change from the previous
+  * is reasonable. Does the same of the yaw.
+  *
+  * @param destination The set point
+  * @param yaw The yaw
+  * @param quad_point Location of the quad in meters
+  * @param object_point Location of the face
+  *
+  * @return true/false
+  */
 bool Control::validatePosition(Vec3f destination, float yaw, Vec3f quad_point,
                                Vec3f object_point) {
   float difference = 0.5f;
@@ -160,6 +232,13 @@ bool Control::validatePosition(Vec3f destination, float yaw, Vec3f quad_point,
   return false;
 }
 
+/**
+  * Validates if the normal is an actual normal.
+  *
+  * @param normal The normal
+  *
+  * @return true/false
+  */
 bool Control::validateNormal(cv::Vec3f normal) {
   float threshold = 0.2;
 
@@ -169,6 +248,14 @@ bool Control::validateNormal(cv::Vec3f normal) {
   return true;
 }
 
+/**
+  * Calculates the yaw for the quad.
+  *
+  * @param x X-coordinte of the normal
+  * @param y Y-coordinte of the normal
+  *
+  * @return angle The yaw in radians
+  */
 float Control::arcTan(float x, float y) {
   float angle;
   float ax = abs(x);

@@ -116,6 +116,12 @@ struct united {
   lcm_t *lcm;
 };
 
+/**
+  * Colors the depth image
+  *
+  * @param imgDepth The depth image
+  * @param imgColorDepth Reference to the color depth image
+  */
 void colorDepthImage(cv::Mat& imgDepth, cv::Mat& imgColoredDepth) {
   imgColoredDepth = cv::Mat::zeros(imgDepth.size(), CV_8UC3);
 
@@ -139,6 +145,11 @@ void colorDepthImage(cv::Mat& imgDepth, cv::Mat& imgColoredDepth) {
   }
 }
 
+/**
+  * Handles the signals
+  *
+  * @param signal Signal value
+  */
 void signalHandler(int signal) {
   if (signal == SIGINT) {
     fprintf(stderr, "# INFO: Quitting...\n");
@@ -154,6 +165,14 @@ KalmanFilter KF(2, 2, 0);
 Mat_<float> measurement(2, 1);
 Point gW(0, 0);
 
+/**
+  * Handles the image stream
+  *
+  * @param rbuf const lcm_recv_buf_t*
+  * @param channel const char*
+  * @param container const mavconn_mavlink_msg_container_t*
+  * @param user void*
+  */
 void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
                   const mavconn_mavlink_msg_container_t* container,
                   void* user) {
@@ -415,6 +434,14 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
   }
 }
 
+/**
+  * Handles the mavlink messages
+  *
+  * @param rbuf const lcm_recv_buf_t*
+  * @param channel const char*
+  * @param container const mavconn_mavlink_msg_container_t*
+  * @param user void*
+  */
 static void mavlink_handler(const lcm_recv_buf_t *rbuf, const char * channel,
                             const mavconn_mavlink_msg_container_t* container,
                             void * user) {
@@ -450,6 +477,11 @@ static void mavlink_handler(const lcm_recv_buf_t *rbuf, const char * channel,
   }
 }
 
+/**
+  * lcm_wait
+  *
+  * @param lcm_ptr void *
+  */
 void *lcm_wait(void *lcm_ptr) {
   lcm_t *lcm = (lcm_t *) lcm_ptr;
 
@@ -477,8 +509,6 @@ static GOptionEntry entries[] = {
 };
 
 int main(int argc, char* argv[]) {
-
-
   /////////////////////////////////////////////////////////////////////////////
     ifstream myfile(configFile->str);
 
@@ -497,11 +527,10 @@ int main(int argc, char* argv[]) {
     face->faceCascadeName = "haarcascade_frontalface_alt.xml";
     face->eyesCascadeName = "haarcascade_eye_tree_eyeglasses.xml";
     face->lipsCascadeName = "haarcascade_mcs_mouth.xml";
-    double fps = 5;
+
+    double fps   = 5;
     Size imgSize = Size(800, 600);
-    video = VideoWriter("output.avi",
-                        CV_FOURCC('M', 'J', 'P', 'G'),
-                        fps,
+    video = VideoWriter("output.avi", CV_FOURCC('M', 'J', 'P', 'G'), fps,
                         imgSize);
   /////////////////////////////////////////////////////////////////////////////
 

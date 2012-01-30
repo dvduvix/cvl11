@@ -164,25 +164,32 @@ Vec3f World::globalPoint(const mavlink_message_t *msg, PxSHMImageClient *client,
 	float cg = cos(roll);
 	float sg = sin(roll);
 
-	float H1t[4][4] = {
-			{ca * cb,  ca * sb * sg - sa * cg,  ca * sb * cg + sa * sg,  x * 1000},
-			{sa * cb,  sa * sb * sg + ca * cg,  sa * sb * cg - ca * sg,  y * 1000},
-			{-sb, 	   cb * sg, 				        cb * cg, 				         z * 1000},
-			{0, 	     0, 					            0, 					             1	     }
+  float H1r[4][4] = {
+    {ca * cb,  ca * sb * sg - sa * cg,  ca * sb * cg + sa * sg,  0},
+    {sa * cb,  sa * sb * sg + ca * cg,  sa * sb * cg - ca * sg,  0},
+    {-sb, 	   cb * sg, 				        cb * cg, 				         0},
+    {0, 	     0, 					            0, 					             1}
 	};
 
+  float H1t[4][4] = {
+    {1, 0, 0, x * 1000},
+    {0, 1, 0, y * 1000},
+    {0, 0, 1, z * 1000},
+    {0, 0, 0, 1	      }
+  };
 
 	float H2t[4][4] = {
-			{0, 1, 0, 0},
-			{0, 0, 1, 0},
-			{1, 0, 0, 0},
-			{0, 0, 0, 1}
+    {0, 0, 1, 0},
+    {1, 0, 0, 0},
+    {0, 1, 0, 0},
+    {0, 0, 0, 1}
 	};
 
-	Mat H1(4, 4, CV_32FC1, H1t);
-	Mat H2(4, 4, CV_32FC1, H2t);
+  Mat H1R(4, 4, CV_32FC1, H1r);
+  Mat H1T(4, 4, CV_32FC1, H1t);
+  Mat H2 (4, 4, CV_32FC1, H2t);
 
-	Mat H = H1 * H2.inv();
+  Mat H = H1T * (H1R * H2);
 	
 	Vec3f ooo = get3DPoint(p, depthImage, intresic.at<float>(0, 0));
 	
