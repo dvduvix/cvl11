@@ -28,6 +28,7 @@ int Control::flyToPos(Vec3f p, float yaw, lcm_t *lcm, int compid) {
 	pos.coordinate_frame = 1;
 
 	printf("Go to: X: %f, Y: %f, Z: %f \n", pos.x, pos.y, pos.z);
+  std::cout << "Yaw: " << pos.yaw << std::endl;
 
 	mavlink_msg_set_local_position_setpoint_encode(getSystemID(), compid, &msg,
 	                                               &pos);
@@ -123,13 +124,14 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
   float normalization = sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
 
   float yaw = arcTan(normal[0], normal[1]);
-  std::cout << "Yaw: " << yaw << std::endl;
 
   Vec3f destination;
 
   destination[0] = objectPosition[0] - keep * normal[0] / normalization;
   destination[1] = objectPosition[1] - keep * normal[1] / normalization;
   destination[2] = fixed_z;
+
+  std::cout << "Normal: " << Mat(normal) << std::endl;
 
   if (validatePosition(destination, yaw, quad_point, objectPosition) &&
       validateNormal(normal))
