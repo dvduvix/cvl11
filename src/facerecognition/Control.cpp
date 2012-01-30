@@ -116,8 +116,8 @@ Vec3f Control::loopAround(const mavlink_message_t *msg, PxSHMImageClient *client
 }
 
 int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
-                       Vec3f objectPosition, Vec3f normal, float fixed_z,
-                       lcm_t *lcm, int compid) {
+                       Vec3f objectPosition, Vec3f normal, Vec3f quad_point,
+                       float fixed_z, lcm_t *lcm, int compid) {
   float keep = 1.1f;
 
   float normalization = sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
@@ -131,7 +131,8 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
   destination[1] = objectPosition[1] - keep * normal[1] / normalization;
   destination[2] = fixed_z;
 
-  if (validatePosition(destination) && validateNormal(normal))
+  if (validatePosition(destination, yaw, quad_point, objectPosition) &&
+      validateNormal(normal))
     flyToPos(destination, yaw, lcm, compid);
 
   return 0;

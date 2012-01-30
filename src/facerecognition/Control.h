@@ -30,8 +30,8 @@ class Control {
 	Vec3f loopAround(const mavlink_message_t *msg, PxSHMImageClient *client,
 	                 Vec3f ap, float rate, lcm_t *lcm, int compid);
 	int trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
-                Vec3f objectPosition, Vec3f normal, float fixed_z, lcm_t *lcm,
-                int compid);
+                Vec3f objectPosition, Vec3f normal, Vec3f quad_point,
+                float fixed_z, lcm_t *lcm, int compid);
 
  private:
   bool validatePosition(Vec3f destination, float yaw, Vec3f quad_point,
