@@ -103,8 +103,8 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   Point3f distance = cv::Point3f(sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]),
                                  0, 0);
 
-  Point3f new_yaw = cv::Point3f(0, 0, arcTan(objectPosition.y - quadPosition.y,
-                                             objectPosition.x - quadPosition.x));
+  Point3f new_yaw = cv::Point3f(0, 0, arcTan(objectNormal.x,
+                                             objectNormal.y);
 
   float normalization = sqrt(objectNormal.x * objectNormal.x +
                              objectNormal.y * objectNormal.y);

@@ -34,7 +34,9 @@ class Control {
                 int compid);
 
  private:
-	bool validatePosition(Vec3f destination);
+  bool validatePosition(Vec3f destination, float yaw, Vec3f quad_point,
+                        Vec3f object_point);
+  bool validateNormal(Vec3f normal);
   float arcTan(float x, float y);
 
 	Vec3f lastPosition;

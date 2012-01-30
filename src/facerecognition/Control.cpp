@@ -122,7 +122,8 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
 
   float normalization = sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
 
-  float yaw = arcTan(-normal[0], -normal[1]);
+  float yaw = arcTan(normal[0], normal[1]);
+  std::cout << "Yaw: " << yaw << std::endl;
 
   Vec3f destination;
 
@@ -130,24 +131,39 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
   destination[1] = objectPosition[1] - keep * normal[1] / normalization;
   destination[2] = fixed_z;
 
-  if (validatePosition(destination))
+  if (validatePosition(destination) && validateNormal(normal))
     flyToPos(destination, yaw, lcm, compid);
 
   return 0;
 }
 
-bool Control::validatePosition(Vec3f destination) {
+bool Control::validatePosition(Vec3f destination, float yaw, Vec3f quad_point,
+                               Vec3f object_point) {
   float difference = 0.5f;
+  float anglediffr = M_PI_2;
+
+  float relativeAngle = arcTan(object_point[0] - quad_point[0],
+                               object_point[1] - quad_point[1]);
 
   if(lastPosition[0] != FLAG && lastPosition[1] != FLAG) {
     if (sqrt(pow(lastPosition[0] - destination[0], 2.0f) +
-             pow(lastPosition[1] - destination[1], 2.0f)) < difference)
+             pow(lastPosition[1] - destination[1], 2.0f)) < difference &&
+        abs(relativeAngle - yaw) < anglediffr)
       return true;
   } else {
     lastPosition = destination;
   }
 
   return false;
+}
+
+bool Control::validateNormal(cv::Vec3f normal) {
+  float threshold = 0.2;
+
+  if ((abs(normal[0]) + abs(normal[1])) < threshold)
+    return false;
+
+  return true;
 }
 
 float Control::arcTan(float x, float y) {
