@@ -52,7 +52,9 @@ StereoProc stereo;
 Vec3f apt;
 float apt_yaw;
 double time_init;
-cv::VideoWriter video;
+
+cv::VideoWriter video01;
+cv::VideoWriter video02;
 
 std::string fileBaseName("frame");
 std::string fileExt(".png");
@@ -289,7 +291,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
         worldPlotter->plotTopView(Point3f(pp), Point3f(normalW), quad_position,
                                   quad_orientation);
-        video<<worldPlotter->outputPlot;
+        video01 << worldPlotter->outputPlot;
       }
 
       Vec3f normalL = world->normalFrom3DPoints(
@@ -406,6 +408,10 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
     }
 
     if (gui) {
+      Mat color;
+      cvtColor(imgRectified, color, CV_GRAY2BGR);
+      video02 << color;
+
       if ((client->getCameraConfig() & PxSHM::CAMERA_FORWARD_LEFT)
           == PxSHM::CAMERA_FORWARD_LEFT) {
         cv::namedWindow("Left Image (Forward Camera)");
@@ -529,9 +535,11 @@ int main(int argc, char* argv[]) {
     face->lipsCascadeName = "haarcascade_mcs_mouth.xml";
 
     double fps   = 5;
-    Size imgSize = Size(800, 600);
-    video = VideoWriter("output.avi", CV_FOURCC('M', 'J', 'P', 'G'), fps,
-                        imgSize);
+
+    video01 = VideoWriter("output01.avi", CV_FOURCC('M', 'J', 'P', 'G'), fps,
+                          Size(800, 600));
+    video02 = VideoWriter("output02.avi", CV_FOURCC('M', 'J', 'P', 'G'), fps,
+                          Size(640, 480));
   /////////////////////////////////////////////////////////////////////////////
 
   GError *error = NULL;
