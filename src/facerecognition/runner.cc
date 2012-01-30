@@ -52,6 +52,7 @@ StereoProc stereo;
 Vec3f apt;
 float apt_yaw;
 double time_init;
+cv::VideoWriter video;
 
 std::string fileBaseName("frame");
 std::string fileExt(".png");
@@ -269,6 +270,7 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
         worldPlotter->plotTopView(Point3f(pp), Point3f(normalW), quad_position,
                                   quad_orientation);
+        video<<worldPlotter->outputPlot;
       }
 
       Vec3f normalL = world->normalFrom3DPoints(
@@ -475,6 +477,8 @@ static GOptionEntry entries[] = {
 };
 
 int main(int argc, char* argv[]) {
+
+
   /////////////////////////////////////////////////////////////////////////////
     ifstream myfile(configFile->str);
 
@@ -493,6 +497,12 @@ int main(int argc, char* argv[]) {
     face->faceCascadeName = "haarcascade_frontalface_alt.xml";
     face->eyesCascadeName = "haarcascade_eye_tree_eyeglasses.xml";
     face->lipsCascadeName = "haarcascade_mcs_mouth.xml";
+    double fps = 5;
+    Size imgSize = Size(800, 600);
+    video = VideoWriter("output.avi",
+                        CV_FOURCC('M', 'J', 'P', 'G'),
+                        fps,
+                        imgSize);
   /////////////////////////////////////////////////////////////////////////////
 
   GError *error = NULL;

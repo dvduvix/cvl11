@@ -40,6 +40,7 @@ class WorldPlotter {
   int object_thickness;
   int marker_size;
   double font_scale;
+  Mat outputPlot;
 
  private:
   void plotCoordinates(Mat *plot, Vector<Point3f> &coordinates,

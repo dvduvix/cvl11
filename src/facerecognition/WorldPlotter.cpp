@@ -135,7 +135,7 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   labels.push_back("P.Goal Yaw");
 
   plotCoordinates(NULL, coordinates, labels);
-
+  outputPlot = plot;
   namedWindow("Top View Plot");
   imshow("Top View Plot", plot);
 }
