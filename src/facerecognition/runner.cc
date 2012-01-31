@@ -163,9 +163,9 @@ void signalHandler(int signal) {
 ///////////////////////////////////////////////////////////////////////////////
 // PRAISE KALMAN
 //////////////////////////////////////////////////////////////////////////////
-/*KalmanFilter KF(2, 2, 0);
+KalmanFilter KF(2, 2, 0);
 Mat_<float> measurement(2, 1);
-Point gW(0, 0);*/
+Point gW(0, 0);
 
 /**
   * Handles the image stream
@@ -179,8 +179,8 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
                   const mavconn_mavlink_msg_container_t* container,
                   void* user) {
   ///////////////////////////////////////////////////////////////////////////
-/*  Mat prediction = KF.predict();
-  Point predictPt(prediction.at<float>(0), prediction.at<float>(1));*/
+  Mat prediction = KF.predict();
+  Point predictPt(prediction.at<float>(0), prediction.at<float>(1));
   ///////////////////////////////////////////////////////////////////////////
 
   struct timeval t1, t2;
@@ -310,14 +310,14 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
         cvLine(&iImgL, cvPoint(imgL.cols / 2, pw.y), pw,
                cvScalar(255, 0, 0, 1), 9);
 
-//      measurement(0) = pw.x /* (1.5 - (float)abs(pw.x - gW.x) / (float)imgL.cols)*/;
-/*      measurement(1) = pw.y;
+      measurement(0) = pw.x /* (1.5 - (float)abs(pw.x - gW.x) / (float)imgL.cols)*/;
+      measurement(1) = pw.y;
 
       Mat estimated = KF.correct(measurement);
       Point statePt(estimated.at<float>(0), estimated.at<float>(1));
 
       gW = kw = statePt;
-*/
+
       if (gui) {
         cvLine(&iImgL, cvPoint(imgL.cols / 2, imgL.rows - 16),
                cvPoint(kw.x, imgL.rows - 16), cvScalar(128, 0, 0, 1), 9);
@@ -344,14 +344,11 @@ void imageHandler(const lcm_recv_buf_t* rbuf, const char* channel,
 
         control->trackFace(msg, client, pp * 0.001, normalW, Vec3f(x, y, z),
                            z_const, lcm, compid);
-                           
-        apt = control->cur_des;
-        apt_yaw = control->cur_yaw;
 
-/*        apt[0] = x;
+        apt[0] = x;
         apt[1] = y;
         apt[2] = z_const;
-        apt_yaw = yaw;*/
+        apt_yaw = yaw;
       }
     } else {
       if (ok)
@@ -601,7 +598,7 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "# INFO: Image client ready, waiting for images...\n");
 
   ///////////////////////////////////////////////////////////////////////////
-/*  KF.transitionMatrix = *(Mat_<float>(2, 2) << 1, 0, 0, 1);
+  KF.transitionMatrix = *(Mat_<float>(2, 2) << 1, 0, 0, 1);
   measurement.setTo(Scalar(0));
 
   KF.statePre.at<float>(0) = 0;
@@ -610,7 +607,7 @@ int main(int argc, char* argv[]) {
   setIdentity(KF.measurementMatrix);
   setIdentity(KF.processNoiseCov, Scalar::all(1e-4));
   setIdentity(KF.measurementNoiseCov, Scalar::all(1e-1));
-  setIdentity(KF.errorCovPost, Scalar::all(1));*/
+  setIdentity(KF.errorCovPost, Scalar::all(1));
   ///////////////////////////////////////////////////////////////////////////
 
   clientHandler.imageClient = &client;
