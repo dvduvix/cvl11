@@ -27,8 +27,10 @@ bool Face::detectFace(cv::Mat &frame) {
   faceCascade.detectMultiScale(imgROI, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE,
                                Size(30, 30));
 
-	if (faces.size() == 0)
+	if (faces.size() == 0) {
+	  ROI = cvRect(0, 0, frame.cols / factor, frame.rows / factor);
 		return false;
+	}
 
 	Rect face    = faces[0];
 	face.height *= factor;

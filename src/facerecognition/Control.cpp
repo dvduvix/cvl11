@@ -195,8 +195,11 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
  // std::cout << "Normal: " << Mat(normal) << std::endl;
 
   if (validatePosition(destination, yaw, quad_point, objectPosition) &&
-      validateNormal(normal))
+      validateNormal(normal)) {
     flyToPos(destination, yaw, lcm, compid);
+    cur_yaw = yaw;
+    cur_des = destination;
+  }
 
   return 0;
 }
@@ -214,7 +217,7 @@ int Control::trackFace(const mavlink_message_t *msg, PxSHMImageClient *client,
   */
 bool Control::validatePosition(Vec3f destination, float yaw, Vec3f quad_point,
                                Vec3f object_point) {
-  float difference = 0.5f;
+  float difference = 1.5f;
   float anglediffr = M_PI_2;
 
   float relativeAngle = arcTan(object_point[0] - quad_point[0],
