@@ -5,10 +5,6 @@ INCLUDE_DIRECTORIES(
   .
 )
 
-SET_SOURCE_FILES(EXAMPLE_SRC_FILES
-  loadimages.cc
-  StereoProc.cc
-)
 
 PIXHAWK_EXECUTABLE(runner runner.cc
 				   Face Face.cpp
