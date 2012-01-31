@@ -18,6 +18,9 @@
 using namespace std;
 using namespace cv;
 
+/**
+  * Class containing the methods for the face detection.
+  */
 class Face
 {
 public:
@@ -29,8 +32,8 @@ public:
 	bool detectFace(cv::Mat &frame);
 
 	string faceCascadeName,
-		   eyesCascadeName,
-		   lipsCascadeName;
+         eyesCascadeName,
+         lipsCascadeName;
 
 	FaceProp faceProp;
 
@@ -42,8 +45,8 @@ public:
 
 private:
 	CascadeClassifier faceCascade,
-					  eyesCascade,
-					  lipsCascade;
+                    eyesCascade,
+                    lipsCascade;
 
 	Rect ROI;
 	int factor;

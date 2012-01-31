@@ -15,6 +15,9 @@
 using namespace cv;
 using namespace std;
 
+/**
+  * Class that contains a ploter functionality
+  */
 class WorldPlotter {
  public:
   WorldPlotter();

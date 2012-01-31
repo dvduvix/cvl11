@@ -17,6 +17,9 @@
 using namespace std;
 using namespace cv;
 
+/**
+  * Class containing all the methods for controling/flying the helicopter.
+  */
 class Control {
  public:
 	Control();

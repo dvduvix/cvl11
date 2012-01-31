@@ -24,7 +24,13 @@ WorldPlotter::WorldPlotter() {
 WorldPlotter::~WorldPlotter() {}
 
 /**
- * This is the function that plots the helicopter AND the object of interest, along with its normal.
+ * This is the function that plots the helicopter AND the object of interest,
+ * along with its normal.
+ *
+ * @param objectPosition Position of an object
+ * @param objectNormal Normal of an object
+ * @param quadPosition Position of the quad
+ * @param quadOrientation Roll, Pitch, and Yaw of the quad.
  */
 void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
                                Point3f quadPosition, Point3f quadOrientation) {
@@ -140,6 +146,14 @@ void WorldPlotter::plotTopView(Point3f objectPosition, Point3f objectNormal,
   imshow("Top View Plot", plot);
 }
 
+/**
+ * Outputs the coordinates given
+ *
+ * @param plot A pointer to the image. If set to NULL in outputs the
+ *             coordinates in seperate window
+ * @param coordinates Values of the coordinates
+ * @param labels Labels of the coordiantes shown
+ */
 void WorldPlotter::plotCoordinates(Mat *plot, Vector<Point3f> &coordinates,
                                    vector<string> &labels) {
   int count = coordinates.size();
@@ -230,7 +244,14 @@ void WorldPlotter::plotCoordinates(Mat *plot, Vector<Point3f> &coordinates,
   }
 }
 
-
+/**
+ * Traces the motion of the quad and the object
+ *
+ * @param plot A pointer to the image. If set to NULL in outputs the
+ *             coordinates in seperate window
+ * @param coordinates Values of the coordinates
+ * @param color Color of the trace
+ */
 void WorldPlotter::plotTrace(Mat &plot, vector<Point2i> &coordinates,
                              Scalar color) {
   for (unsigned int i = 0; i < coordinates.size() - 1; ++i) {
@@ -238,7 +259,12 @@ void WorldPlotter::plotTrace(Mat &plot, vector<Point2i> &coordinates,
   }
 }
 
-
+/**
+ * Plots the axes in the ploter
+ *
+ * @param plot A pointer to the image. If set to NULL in outputs the
+ *             coordinates in seperate window
+ */
 void WorldPlotter::plotAxes(cv::Mat &plot) {
   int marker_x,
       marker_y;
@@ -277,6 +303,12 @@ void WorldPlotter::plotAxes(cv::Mat &plot) {
   }
 }
 
+/**
+ * Calculates the yaw fot the give X and Y
+ *
+ * @param x X coordinate of the vector
+ * @param y Y coordinate of the vector
+ */
 float WorldPlotter::arcTan(float x, float y) {
   float angle;
   float ax = abs(x);

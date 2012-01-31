@@ -12,6 +12,15 @@ World::World() { }
 
 World::~World() { }
 
+/**
+  * Calculates a 3D point in camera coordinates.
+  *
+  * @param p A 2D point in pixels.
+  * @param depthImage A reference to the depthImage
+  * @param focus The lenght of the camera focus.
+  *
+  * @return point A 3D point in camera coordinates
+  */
 Vec3f World::get3DPoint(Vec2i p, Mat &depthImage, float focus)
 {
 	Vec3f point;
@@ -57,6 +66,15 @@ Vec3f World::get3DPoint(Vec2i p, Mat &depthImage, float focus)
 	return point;
 }
 
+/**
+  * Constructs a rotational matrix using roll, pitch, and yaw.
+  *
+  * @param roll Roll in current world frame coordinates.
+  * @param pitch Pitch in current world frame coordinates.
+  * @param yaw Yaw in current world frame coordinates.
+  *
+  * @return rotMat The rotational matrix
+  */
 CvMat *World::constructRotationMatrix(float roll, float pitch, float yaw)
 {
 	CvMat *rotMat  = cvCreateMat(3, 3, CV_32FC1);
@@ -76,6 +94,15 @@ CvMat *World::constructRotationMatrix(float roll, float pitch, float yaw)
 	return rotMat;
 }
 
+/**
+  * Calculates a normal using 3 3D points.
+  *
+  * @param s1 First point
+  * @param s2 Second point
+  * @param s3 Third point
+  *
+  * @return normal The normal
+  */
 Vec3f World::normalFrom3DPoints(Vec3f s1, Vec3f s2, Vec3f s3) {
 	Vec3f a, b, normal;
 
@@ -100,6 +127,15 @@ Vec3f World::normalFrom3DPoints(Vec3f s1, Vec3f s2, Vec3f s3) {
 	return normal;
 }
 
+/**
+  * Calculates a normal using an area.
+  *
+  * @param prop Properties of a face
+  * @param depthImage Reference to the depth image
+  * @param focus Focal length of the camera
+  *
+  * @return normal The normal
+  */
 Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus) {
 	Vec3f normal;
 	Rect area = prop.r;
@@ -148,9 +184,20 @@ Vec3f World::normalFromArea(FaceProp prop, Mat &depthImage, float focus) {
 	return normal;
 }
 
+/**
+  * Given a 2D point in image coordinates calculates a 3D point in world
+  * coordinates.
+  *
+  * @param msg const mavlink_message_t *
+  * @param client PxSHMImageClient *
+  * @param p 2D point
+  * @param intresic The intrinsic matrix
+  * @param depthImage A reference to the depth image
+  *
+  * @return fP The 3D point
+  */
 Vec3f World::globalPoint(const mavlink_message_t *msg, PxSHMImageClient *client,
-		Vec2f &p, Mat &intresic, Mat &depthImage)
-{
+                         Vec2f &p, Mat &intresic, Mat &depthImage) {
 	float roll, pitch, yaw;
 	float x, y, z;
 
@@ -250,6 +297,13 @@ float select(vector<float>& t,int p,int r,int i) {
     return 0.0f;
 }
 
+/**
+  * Given a vector of floats it finds the median
+  *
+  * @param t Vector of floats
+  *
+  * @return median Value of the median
+  */
 float World::getMed(vector<float>& t) {
     return select(t,0,t.size()-1,(t.size()+1)/2);
 }

@@ -13,6 +13,9 @@
 using namespace std;
 using namespace cv;
 
+/**
+  * Class containing the fatial parameters
+  */
 class FaceProp {
 public:
 	FaceProp();

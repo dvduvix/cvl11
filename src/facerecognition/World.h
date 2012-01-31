@@ -16,6 +16,9 @@
 using namespace std;
 using namespace cv;
 
+/**
+  * Class that contains the world parameters and coordinate transform methods.
+  */
 class World {
  public:
 	World();

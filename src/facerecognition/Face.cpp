@@ -115,6 +115,13 @@ bool Face::detectFace(cv::Mat &frame) {
 	return true;
 }
 
+/**
+  * Initalization of the needed parameters for the face detection.
+  *
+  * @param frame A reference to input image (Recrified image)
+  *
+  * @return 0 if succesfull, else -1
+  */
 int Face::init(cv::Mat &frame) {
 	if (!faceCascade.load(faceCascadeName)) {
 		printf("--(!)Error loading %s\n", faceCascadeName.c_str());
